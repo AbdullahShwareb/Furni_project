@@ -8,34 +8,33 @@ import Cart from "./pages/cart/Cart.jsx";
 import Login from "./pages/login/Login.jsx";
 import Register from "./pages/register/Register.jsx";
 
+import Shop from "./pages/shop/Shop.jsx";
+import About from "./pages/about/About.jsx";
+import Services from "./pages/services/Services.jsx";
+import Blog from "./pages/blog/Blog.jsx";
+import Contact from "./pages/contact/Contact.jsx";
+
 const router = createBrowserRouter([
   {
-    path: "/",               
+    path: "/",
     element: <MainLayout />,
     children: [
-      {
-        path: "home",        
-        element: <Home />,
-      },
-      {
-        path: "cart",        
-        element: <Cart />,
-      },
+      { index: true, element: <Home /> },   
+      { path: "home", element: <Home /> }, 
+      { path: "shop", element: <Shop /> }, 
+      { path: "about", element: <About /> },
+      { path: "services", element: <Services /> }, 
+      { path: "blog", element: <Blog /> },  
+      { path: "contact", element: <Contact /> }, 
+      { path: "cart", element: <Cart /> }, 
     ],
   },
-
   {
     path: "/auth",
     element: <AuthLayout />,
     children: [
-      {
-        path: "login",
-        element: <Login />,
-      },
-      {
-        path: "register",
-        element: <Register />,
-      },
+      { path: "login", element: <Login /> },      
+      { path: "register", element: <Register /> }, 
     ],
   },
 ]);
