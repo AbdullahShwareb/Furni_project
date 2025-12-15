@@ -13,9 +13,11 @@ export default function Login() {
         values
       );
       console.log(response);
-    } catch (err) {
-      console.log(err);
-    }
+    }catch (err) {
+  console.log("login error:", err);
+  console.log("server response:", err.response?.data);
+}
+
   };
 
   return (

@@ -14,27 +14,33 @@ import Services from "./pages/services/Services.jsx";
 import Blog from "./pages/blog/Blog.jsx";
 import Contact from "./pages/contact/Contact.jsx";
 
+
+import Categories from "./Categories/Categories.jsx";
+
 const router = createBrowserRouter([
   {
     path: "/",
     element: <MainLayout />,
     children: [
-      { index: true, element: <Home /> },   
-      { path: "home", element: <Home /> }, 
-      { path: "shop", element: <Shop /> }, 
+      { index: true, element: <Home /> },
+      { path: "home", element: <Home /> },
+
+      { path: "categories", element: <Categories /> },
+
+      { path: "shop", element: <Shop /> },
       { path: "about", element: <About /> },
-      { path: "services", element: <Services /> }, 
-      { path: "blog", element: <Blog /> },  
-      { path: "contact", element: <Contact /> }, 
-      { path: "cart", element: <Cart /> }, 
+      { path: "services", element: <Services /> },
+      { path: "blog", element: <Blog /> },
+      { path: "contact", element: <Contact /> },
+      { path: "cart", element: <Cart /> },
     ],
   },
   {
     path: "/auth",
     element: <AuthLayout />,
     children: [
-      { path: "login", element: <Login /> },      
-      { path: "register", element: <Register /> }, 
+      { path: "login", element: <Login /> },
+      { path: "register", element: <Register /> },
     ],
   },
 ]);

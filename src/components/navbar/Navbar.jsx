@@ -22,7 +22,11 @@ const Navbar = () => {
   });
 
   return (
-    <AppBar position="static" elevation={0} sx={{ backgroundColor: "#3b5d50", py: 1 }}>
+    <AppBar
+      position="static"
+      elevation={0}
+      sx={{ backgroundColor: "#3b5d50", py: 1 }}
+    >
       <Toolbar sx={{ maxWidth: "1200px", width: "100%", mx: "auto" }}>
         <Typography
           component={NavLink}
@@ -38,30 +42,33 @@ const Navbar = () => {
           Furni
         </Typography>
 
-        <Box
-          sx={{
-            flexGrow: 1,
-            display: "flex",
-            justifyContent: "center",
-          }}
-        >
+        <Box sx={{ flexGrow: 1 }}>
           <NavLink to="/home" style={linkStyle}>
             Home
           </NavLink>
+
           <NavLink to="/shop" style={linkStyle}>
             Shop
           </NavLink>
-          <NavLink to="/about" style={linkStyle}>
-            About us
+
+          <NavLink to="/categories" style={linkStyle}>
+            Categories
           </NavLink>
+
+          <NavLink to="/about" style={linkStyle}>
+            About
+          </NavLink>
+
           <NavLink to="/services" style={linkStyle}>
             Services
           </NavLink>
+
           <NavLink to="/blog" style={linkStyle}>
             Blog
           </NavLink>
+
           <NavLink to="/contact" style={linkStyle}>
-            Contact us
+            Contact
           </NavLink>
         </Box>
 
@@ -81,14 +88,11 @@ const Navbar = () => {
         <Button
           component={NavLink}
           to="/auth/register"
-          variant="contained"
           sx={{
-            backgroundColor: "#ffffff",
-            color: "#3b5d50",
+            color: "#fff",
             textTransform: "none",
-            fontWeight: "600",
+            fontWeight: "500",
             mr: 2,
-            "&:hover": { backgroundColor: "#e0e0e0" },
           }}
         >
           Register
