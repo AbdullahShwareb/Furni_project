@@ -12,10 +12,13 @@ import Shop from "./pages/shop/Shop.jsx";
 import About from "./pages/about/About.jsx";
 import Services from "./pages/services/Services.jsx";
 import Blog from "./pages/blog/Blog.jsx";
+
 import Contact from "./pages/contact/Contact.jsx";
 
-
 import Categories from "./Categories/Categories.jsx";
+
+import ForgotPassword from "./pages/forgotPassword/ForgotPassword.jsx";
+import ResetPassword from "./pages/resetPassword/ResetPassword.jsx";
 
 const router = createBrowserRouter([
   {
@@ -32,15 +35,20 @@ const router = createBrowserRouter([
       { path: "services", element: <Services /> },
       { path: "blog", element: <Blog /> },
       { path: "contact", element: <Contact /> },
+
       { path: "cart", element: <Cart /> },
     ],
   },
+
   {
     path: "/auth",
     element: <AuthLayout />,
     children: [
       { path: "login", element: <Login /> },
       { path: "register", element: <Register /> },
+
+      { path: "forgot-password", element: <ForgotPassword /> },
+      { path: "reset-password", element: <ResetPassword /> },
     ],
   },
 ]);
