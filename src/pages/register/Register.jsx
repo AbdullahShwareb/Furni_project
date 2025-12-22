@@ -1,9 +1,9 @@
-import { Box, Button, TextField, Typography, CircularProgress } from "@mui/material";
+import { Box, Button, TextField, Typography, CircularProgress, Alert } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import axiosInstance from "../../api/axiosInstance";
+import useRegister from "../../hooks/useRegister";
 
 const registerSchema = yup.object({
   fullName: yup.string().required("Full Name Is Required"),
@@ -26,38 +26,66 @@ const registerSchema = yup.object({
 
 export default function Register() {
   const [serverErrors, setServerErrors] = useState([]);
+  const [successMsg, setSuccessMsg] = useState("");
+
+  const registerMutation = useRegister();
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm({
     resolver: yupResolver(registerSchema),
     mode: "onBlur",
   });
 
-  const registerForm = async (values) => {
+  const registerForm = (values) => {
     setServerErrors([]);
-    try {
-      const response = await axiosInstance.post("/Auth/Account/Register", values);
-      console.log(response);
-    } catch (err) {
-      console.log(err);
-      setServerErrors(err.response?.data?.errors || []);
-    }
+    setSuccessMsg("");
+
+    registerMutation.mutate(values, {
+      onSuccess: () => {
+        setSuccessMsg("تم إنشاء الحساب بنجاح");
+      },
+      onError: (err) => {
+        const apiErrors = err.response?.data?.errors;
+        const msg =
+          err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          err?.response?.data?.msg;
+
+        if (Array.isArray(apiErrors) && apiErrors.length > 0) {
+          setServerErrors(apiErrors);
+        } else if (msg) {
+          setServerErrors([msg]);
+        } else {
+          setServerErrors(["فشل إنشاء الحساب"]);
+        }
+      },
+    });
   };
+
+  const isSubmitting = registerMutation.isPending;
 
   return (
     <Box className="register-form">
       <Typography variant="h4">Register Page</Typography>
 
-      {serverErrors.length > 0
-        ? serverErrors.map((err, index) => (
-            <Typography key={index} sx={{ color: "red" }}>
+      {serverErrors.length > 0 && (
+        <Box sx={{ mt: 2 }}>
+          {serverErrors.map((err, index) => (
+            <Alert key={index} severity="error" sx={{ mb: 1 }}>
               {err}
-            </Typography>
-          ))
-        : null}
+            </Alert>
+          ))}
+        </Box>
+      )}
+
+      {successMsg && (
+        <Alert severity="success" sx={{ mt: 2 }}>
+          {successMsg}
+        </Alert>
+      )}
 
       <Box
         component="form"
@@ -69,6 +97,7 @@ export default function Register() {
           {...register("userName")}
           error={!!errors.userName}
           helperText={errors.userName?.message}
+          disabled={isSubmitting}
         />
 
         <TextField
@@ -76,6 +105,7 @@ export default function Register() {
           {...register("fullName")}
           error={!!errors.fullName}
           helperText={errors.fullName?.message}
+          disabled={isSubmitting}
         />
 
         <TextField
@@ -83,6 +113,7 @@ export default function Register() {
           {...register("email")}
           error={!!errors.email}
           helperText={errors.email?.message}
+          disabled={isSubmitting}
         />
 
         <TextField
@@ -91,6 +122,7 @@ export default function Register() {
           {...register("password")}
           error={!!errors.password}
           helperText={errors.password?.message}
+          disabled={isSubmitting}
         />
 
         <TextField
@@ -98,6 +130,7 @@ export default function Register() {
           {...register("phoneNumber")}
           error={!!errors.phoneNumber}
           helperText={errors.phoneNumber?.message}
+          disabled={isSubmitting}
         />
 
         <Button variant="contained" type="submit" disabled={isSubmitting}>

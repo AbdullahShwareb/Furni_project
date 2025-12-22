@@ -1,4 +1,3 @@
-import axios from "axios";
 import { useForm } from "react-hook-form";
 import {
   Box,
@@ -10,6 +9,7 @@ import {
 } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import useLogin from "../../hooks/useLogin";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -20,12 +20,12 @@ export default function Login() {
     formState: { errors },
   } = useForm({ mode: "onSubmit" });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [serverError, setServerError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  const loginForm = async (values) => {
-    setIsSubmitting(true);
+  const loginMutation = useLogin();
+
+  const loginForm = (values) => {
     setServerError("");
     setSuccessMsg("");
 
@@ -34,49 +34,36 @@ export default function Login() {
       password: values.password,
     };
 
-    try {
-      const response = await axios.post(
-        "https://knowledgeshop.runasp.net/api/Auth/Account/Login",
-        payload,
-        { headers: { "Content-Type": "application/json" } }
-      );
+    loginMutation.mutate(payload, {
+      onSuccess: (data) => {
+        const token = data?.token || data?.data?.token || data?.accessToken;
+        if (token) localStorage.setItem("token", token);
 
-      const token =
-        response?.data?.token ||
-        response?.data?.data?.token ||
-        response?.data?.accessToken;
+        setSuccessMsg("تم تسجيل الدخول");
 
-      if (token) {
-        localStorage.setItem("token", token);
-      }
+        setTimeout(() => {
+          navigate("/home");
+        }, 700);
+      },
+      onError: (err) => {
+        const apiMessage =
+          err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          err?.response?.data?.msg;
+        const status = err.response.status;
 
-      setSuccessMsg("تم تسجيل الدخول ");
-
-      setTimeout(() => {
-        navigate("/home"); 
-      }, 700);
-    } catch (err) {
-      console.log("login error:", err);
-      console.log("server response:", err.response?.data);
-
-      const apiMessage =
-        err?.response?.data?.message ||
-        err?.response?.data?.error ||
-        err?.response?.data?.msg;
-
-      if (!err?.response) {
-        setServerError();
-      } else if (err.response.status === 400) {
-        setServerError(apiMessage || "بيانات الدخول غير صحيحة ");
-      } else if (err.response.status === 401) {
-        setServerError("الإيميل أو كلمة المرور غلط ");
-      } else {
-        setServerError(apiMessage || "فشل تسجيل الدخول ");
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
+        if (status === 400) {
+          setServerError(apiMessage || "بيانات الدخول غير صحيحة");
+        } else if (status === 401) {
+          setServerError("الإيميل أو كلمة المرور غلط");
+        } else {
+          setServerError(apiMessage || "فشل تسجيل الدخول");
+        }
+      },
+    });
   };
+
+  const isSubmitting = loginMutation.isPending;
 
   return (
     <Box
@@ -163,12 +150,12 @@ export default function Login() {
         </Button>
 
         <Typography sx={{ textAlign: "center", mt: 1 }}>
-          ما عندك حساب؟{" "}
+          ما في عندك حساب؟{" "}
           <Link
             to="/auth/register"
             style={{ color: "#3b5d50", fontWeight: 700, textDecoration: "none" }}
           >
-            سجل الآن
+            سجل الآن...
           </Link>
         </Typography>
       </Box>

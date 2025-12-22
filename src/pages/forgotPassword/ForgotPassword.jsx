@@ -9,89 +9,64 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { useState } from "react";
-import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
+import useSendCode from "../../hooks/useSendCode";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [successMsg, setSuccessMsg] = useState("");
-  const [serverError, setServerError] = useState("");
+  const [localError, setLocalError] = useState("");
 
   const navigate = useNavigate();
+  const sendCodeMutation = useSendCode();
 
-  const handleSendCode = async (e) => {
+  const handleSendCode = (e) => {
     e.preventDefault();
 
-    setSuccessMsg("");
-    setServerError("");
+    setLocalError("");
 
     const trimmedEmail = email.trim();
     if (!trimmedEmail) {
-      setServerError("اكتب الإيميل أولا");
+      setLocalError("اكتب الإيميل أولا");
       return;
     }
 
-    // (Optional) simple email pattern
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailPattern.test(trimmedEmail)) {
-      setServerError("صيغة الإيميل غير صحيحة ");
+      setLocalError("صيغة الإيميل غير صحيحة");
       return;
     }
 
-    setIsSubmitting(true);
-
-    try {
-      const res = await axios.post(
-        "https://knowledgeshop.runasp.net/api/Auth/Account/SendCode",
-        { email: trimmedEmail },
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-
-      const msg =
-        res?.data?.message ||
-        res?.data?.msg ||
-        "تم إرسال الكود إلى الإيميل ";
-
-      setSuccessMsg(msg);
-
-      setTimeout(() => {
-        navigate("/auth/reset-password", { state: { email: trimmedEmail } });
-      }, 800);
-    } catch (err) {
-      console.log("SendCode ERROR:", err);
-      console.log("STATUS:", err?.response?.status);
-      console.log("DATA:", err?.response?.data);
-
-      const apiMessage =
-        err?.response?.data?.message ||
-        err?.response?.data?.error ||
-        err?.response?.data?.msg;
-
-      if (!err?.response) {
-        setServerError(
-        );
-      } else {
-        const status = err.response.status;
-
-        if (status === 400) {
-          setServerError(apiMessage || "البيانات غير صحيحة. تأكد من الإيميل ");
-        } else if (status === 404) {
-          setServerError("الرابط غير صحيح (404) ");
-        } else if (status === 401) {
-          setServerError("غير مصرح (401) ");
-        } else if (status === 500) {
-          setServerError("مشكلة بالسيرفر (500)  جرّب لاحقًا");
-        } else {
-          setServerError(apiMessage || "فشل إرسال الكود. تأكد من الإيميل ");
-        }
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
+    sendCodeMutation.mutate(trimmedEmail, {
+      onSuccess: () => {
+        setTimeout(() => {
+          navigate("/auth/reset-password", { state: { email: trimmedEmail } });
+        }, 800);
+      },
+    });
   };
+
+  const apiMessage =
+    sendCodeMutation.error?.response?.data?.message ||
+    sendCodeMutation.error?.response?.data?.error ||
+    sendCodeMutation.error?.response?.data?.msg;
+
+  const status = sendCodeMutation.error?.response?.status;
+
+  const serverError =
+    localError ||
+    (sendCodeMutation.isError &&
+      (status === 400
+        ? apiMessage || "البيانات غير صحيحة. تأكد من الإيميل"
+        : status === 404
+        ? "الرابط غير صحيح (404)"      
+        : apiMessage || "فشل إرسال الكود. تأكد من الإيميل"));
+
+  const successMsg =
+    sendCodeMutation.data?.message ||
+    sendCodeMutation.data?.msg ||
+    (sendCodeMutation.isSuccess ? "تم إرسال الكود إلى الإيميل" : "");
+
+  const isSubmitting = sendCodeMutation.isPending;
 
   return (
     <Box sx={{ backgroundColor: "#f0f4f2", minHeight: "100vh", py: 6 }}>
