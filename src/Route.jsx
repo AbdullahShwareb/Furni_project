@@ -12,13 +12,14 @@ import Shop from "./pages/shop/Shop.jsx";
 import About from "./pages/about/About.jsx";
 import Services from "./pages/services/Services.jsx";
 import Blog from "./pages/blog/Blog.jsx";
-
 import Contact from "./pages/contact/Contact.jsx";
 
 import Categories from "./Categories/Categories.jsx";
 
 import ForgotPassword from "./pages/forgotPassword/ForgotPassword.jsx";
 import ResetPassword from "./pages/resetPassword/ResetPassword.jsx";
+
+import ProductDetails from "./pages/products/ProductDetails.jsx";
 
 const router = createBrowserRouter([
   {
@@ -31,6 +32,8 @@ const router = createBrowserRouter([
       { path: "categories", element: <Categories /> },
 
       { path: "shop", element: <Shop /> },
+      { path: "products/:id", element: <ProductDetails /> },
+
       { path: "about", element: <About /> },
       { path: "services", element: <Services /> },
       { path: "blog", element: <Blog /> },

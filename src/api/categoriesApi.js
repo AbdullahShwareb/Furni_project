@@ -1,6 +1,8 @@
 import axiosInstance from "./axiosInstance";
 
 export const fetchCategoriesApi = async() => {
-    const response = await axiosInstance.get("/Categories");
-    return response.data;
+    const res = await axiosInstance.get("/Categories", {
+        params: { lang: "en" },
+    });
+    return res.data;
 };

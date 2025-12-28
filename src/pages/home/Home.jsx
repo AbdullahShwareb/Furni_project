@@ -4,7 +4,8 @@ import { useNavigate } from "react-router-dom";
 
 import couch from "../../assets/couch.png";
 import ProductsSection from "./ProductsSection";
-
+import WhyChooseUsSection from "./WhyChooseUsSection.jsx";
+import InteriorDesignSection from "./InteriorDesignSection.jsx";
 export default function Home() {
   const navigate = useNavigate();
 
@@ -43,11 +44,18 @@ export default function Home() {
                   fontSize: 15,
                 }}
               >
-                Donec vitae odio quis nisl dapibus malesuada. Nullam ac aliquet velit.
-                Aliquam vulputate velit imperdiet dolor tempor tristique.
+                Donec vitae odio quis nisl dapibus malesuada. Nullam ac aliquet
+                velit. Aliquam vulputate velit imperdiet dolor tempor tristique.
               </Typography>
 
-              <Box sx={{ mt: 4, display: "flex", gap: 2, flexWrap: "wrap" }}>
+              <Box
+                sx={{
+                  mt: 4,
+                  display: "flex",
+                  gap: 2,
+                  flexWrap: "wrap",
+                }}
+              >
                 <Button
                   variant="contained"
                   onClick={() => navigate("/shop")}
@@ -93,7 +101,6 @@ export default function Home() {
                   justifyContent: { xs: "center", sm: "flex-end" },
                 }}
               >
-             
                 <Box
                   component="img"
                   src={couch}
@@ -114,6 +121,10 @@ export default function Home() {
       </Box>
 
       <ProductsSection />
+
+      <WhyChooseUsSection />
+ <InteriorDesignSection /> 
+      
     </>
   );
 }

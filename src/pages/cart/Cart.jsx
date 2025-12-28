@@ -1,15 +1,19 @@
-import { useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import useCartPage from "../../hooks/useCartPage";
+import CartView from "./CartView";
 
 export default function Cart() {
-  const location = useLocation();
+  const cart = useCartPage();
 
-  useEffect(() => {
-    const product = location.state?.addProduct;
-    if (product) {
-      console.log("Add to cart:", product);
-    }
-  }, [location.state]);
-
-  return <div>Cart Page</div>;
+  return (
+    <CartView
+      loading={cart.loading}
+      msg={cart.msg}
+      items={cart.items}
+      cartTotal={cart.cartTotal}
+      onDec={cart.dec}
+      onInc={cart.inc}
+      onRemove={cart.removeItem}
+      onClear={cart.clearAll}
+    />
+  );
 }
