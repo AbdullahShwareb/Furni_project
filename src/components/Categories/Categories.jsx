@@ -2,10 +2,13 @@ import { Box, Card, CircularProgress, Container, Grid, Typography } from "@mui/m
 import { useCategories } from "../../hooks/useCategories";
 
 export default function Categories() {
-  const { isLoading, isError, data: list = [], error } = useCategories();
+  const { isLoading, isError, data, error } = useCategories();
 
   if (isLoading) return <CircularProgress />;
   if (isError) return <Typography>error: {error?.message}</Typography>;
+
+  // ✅ لأن الـ API بيرجع { response: [...] }
+  const list = Array.isArray(data?.response) ? data.response : [];
 
   return (
     <Box p={3}>
@@ -16,9 +19,9 @@ export default function Categories() {
       <Container maxWidth="lg">
         <Grid container spacing={5}>
           {list.map((category, idx) => (
-            <Grid key={category.id ?? category.categoryId ?? idx} item xs={12} sm={6} md={5} lg={3}>
+            <Grid key={category.id ?? idx} item xs={12} sm={6} md={5} lg={3}>
               <Card sx={{ textAlign: "center", p: 4 }}>
-                {category.name ?? category.nameEn ?? category.nameAr ?? category.title ?? category.categoryName ?? "—"}
+                {category.name ?? `Category #${category.id}`}
               </Card>
             </Grid>
           ))}

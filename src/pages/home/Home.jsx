@@ -6,6 +6,13 @@ import couch from "../../assets/couch.png";
 import ProductsSection from "./ProductsSection";
 import WhyChooseUsSection from "./WhyChooseUsSection.jsx";
 import InteriorDesignSection from "./InteriorDesignSection.jsx";
+import FeatureProductsSection from "./FeatureProductsSection.jsx"; 
+import TestimonialsSection from "./TestimonialsSection.jsx";
+import RecentBlogSection from "./RecentBlogSection.jsx";
+
+
+
+
 export default function Home() {
   const navigate = useNavigate();
 
@@ -121,10 +128,13 @@ export default function Home() {
       </Box>
 
       <ProductsSection />
-
       <WhyChooseUsSection />
- <InteriorDesignSection /> 
-      
+      <InteriorDesignSection />
+
+      <FeatureProductsSection />
+      <TestimonialsSection />
+      <RecentBlogSection />
+
     </>
   );
 }
