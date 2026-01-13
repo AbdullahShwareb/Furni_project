@@ -1,55 +1,58 @@
-export default function ProductDetailsView({
-  loading,
-  err,
-  product,
-  onAddToCart,
-  onBack,
-}) {
-  if (loading) return <p style={{ padding: 20 }}>Loading...</p>;
-  if (err) return <p style={{ padding: 20, color: "red" }}>{err}</p>;
-  if (!product) return <p style={{ padding: 20 }}>No product found.</p>;
+import React from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import useProductDetails from "../../hooks/useProductDetails";
 
-  const name = product.name ? product.name : product.productName;
-  const price = product.price !== undefined ? product.price : (product.Price !== undefined ? product.Price : 0);
-  const rate = product.rate !== undefined ? product.rate : (product.rating !== undefined ? product.rating : null);
-  const desc = product.description ? product.description : (product.desc ? product.desc : "");
+export default function ProductDetailsView() {
+  const { id } = useParams();
+  const nav = useNavigate();
+  const { data: product, isLoading, isError } = useProductDetails(id);
+
+  if (isLoading) return <div style={{ padding: 16 }}>Loading details...</div>;
+  if (isError) return <div style={{ padding: 16, color: "red" }}>Error loading product.</div>;
+
+  if (!product) {
+    return (
+      <div style={{ padding: 16 }}>
+        <div style={{ marginBottom: 12, fontWeight: 700 }}>Product not found</div>
+        <button onClick={() => nav("/shop")}>Back to shop</button>
+      </div>
+    );
+  }
+
+  const title =
+    product?.name ??
+    product?.title ??
+    product?.Translations?.find((t) => t?.language === "en")?.name ??
+    product?.Translations?.[0]?.name ??
+    "Product";
+
+  const desc =
+    product?.description ??
+    product?.Translations?.find((t) => t?.language === "en")?.description ??
+    product?.Translations?.[0]?.description ??
+    "";
+
+  const price = product?.price ?? product?.Price;
 
   return (
-    <div style={{ padding: 20, maxWidth: 900, margin: "0 auto" }}>
-      <button onClick={onBack} style={{ marginBottom: 12 }}>
+    <div style={{ padding: 16, maxWidth: 900, margin: "0 auto" }}>
+      <button onClick={() => nav(-1)} style={{ marginBottom: 16 }}>
         ← Back
       </button>
 
-      <div style={{ border: "1px solid #ddd", borderRadius: 14, padding: 18 }}>
-        <h2 style={{ marginTop: 0 }}>{name}</h2>
+      <div style={{ border: "1px solid #eee", borderRadius: 12, padding: 16 }}>
+        <h2 style={{ marginTop: 0 }}>{title}</h2>
 
-        <p style={{ fontSize: 18, margin: "8px 0" }}>
-          Price: <b>{Number(price)} ₪</b>
-        </p>
+        {price != null && (
+          <div style={{ fontWeight: 700, marginBottom: 10 }}>
+            Price: {price}
+          </div>
+        )}
 
-        {rate !== null ? (
-          <p style={{ margin: "8px 0" }}>Rate: {rate}</p>
-        ) : null}
+        {desc && <p style={{ lineHeight: 1.7 }}>{desc}</p>}
 
-        {desc ? (
-          <p style={{ marginTop: 14, lineHeight: 1.7 }}>{desc}</p>
-        ) : null}
-
-        <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
-          <button
-            onClick={onAddToCart}
-            style={{
-              padding: "10px 14px",
-              borderRadius: 10,
-              border: "1px solid #3b5d50",
-              background: "#3b5d50",
-              color: "white",
-              cursor: "pointer",
-              fontWeight: 700,
-            }}
-          >
-            Add to cart
-          </button>
+        <div style={{ marginTop: 16, opacity: 0.7, fontSize: 14 }}>
+          Product ID: {product?.id ?? product?.productId ?? product?.Id}
         </div>
       </div>
     </div>

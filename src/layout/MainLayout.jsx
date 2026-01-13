@@ -2,7 +2,7 @@ import { Outlet } from "react-router-dom";
 import Navbar from "../components/navbar/Navbar.jsx";
 import Footer from "../components/footer/Footer.jsx";
 
-const MainLayout = () => {
+export default function MainLayout() {
   return (
     <>
       <Navbar />
@@ -10,6 +10,4 @@ const MainLayout = () => {
       <Footer />
     </>
   );
-};
-
-export default MainLayout;
+}

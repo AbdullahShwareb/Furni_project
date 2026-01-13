@@ -1,11 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchProductDetailsApi } from "../api/productsApi";
+import { getProductByIdFallback } from "../api/productsApi";
 
-export const useProductDetails = (id, lang = "en") => {
+export default function useProductDetails(id) {
     return useQuery({
-        queryKey: ["productDetails", id, lang],
-        queryFn: () => fetchProductDetailsApi({ id, lang }),
+        queryKey: ["productDetails", id],
+        queryFn: () => getProductByIdFallback(id),
         enabled: !!id,
-        staleTime: 60 * 1000,
     });
-};
+}

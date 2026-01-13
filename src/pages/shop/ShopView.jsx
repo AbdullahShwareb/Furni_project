@@ -1,29 +1,32 @@
 export default function ShopView({
   loading,
   err,
-  categories,
-  pageItems,
-  total,
-  totalPages,
-  page,
 
-  search,
-  categoryId,
-  minPrice,
-  maxPrice,
-  sortBy,
-  sortDir,
+  categories = [],      
+  pageItems = [],       
 
-  onSearch,
-  onCategory,
-  onMinPrice,
-  onMaxPrice,
-  onSortBy,
-  onSortDir,
+  total = 0,
+  totalPages = 1,
+  page = 1,
 
-  onOpenProduct,
-  onGoPage,
+  search = "",
+  categoryId = "all",
+  minPrice = "",
+  maxPrice = "",
+  sortBy = "name",
+  sortDir = "asc",
+
+  onSearch = () => {},
+  onCategory = () => {},
+  onMinPrice = () => {},
+  onMaxPrice = () => {},
+  onSortBy = () => {},
+  onSortDir = () => {},
+
+  onOpenProduct = () => {},
+  onGoPage = () => {},
 }) {
+
   if (loading) return <p style={{ padding: 20 }}>Loading...</p>;
   if (err) return <p style={{ padding: 20, color: "red" }}>{err}</p>;
 
@@ -31,7 +34,6 @@ export default function ShopView({
     <div style={{ padding: 20 }}>
       <h2>Shop</h2>
 
-      {/* controls */}
       <div
         style={{
           display: "flex",
@@ -91,7 +93,6 @@ export default function ShopView({
         </div>
       </div>
 
-      {/* list */}
       {pageItems.length === 0 ? (
         <p>No products found.</p>
       ) : (
@@ -117,7 +118,6 @@ export default function ShopView({
         </div>
       )}
 
-      {/* pagination */}
       <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 18 }}>
         <button onClick={() => onGoPage(1)} disabled={page === 1}>
           {"<<"}

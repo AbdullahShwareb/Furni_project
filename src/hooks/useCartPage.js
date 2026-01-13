@@ -75,7 +75,6 @@ export default function useCartPage() {
         }
     }
 
-    // derived totals
     const cartTotal = items.reduce((sum, it) => {
         const t = Number(it.totalPrice !== undefined ? it.totalPrice : (Number(it.price || 0) * Number(it.count || 0)));
         return sum + t;
