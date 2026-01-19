@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import couchImg from "../../assets/couch (1).png";
 import WhyChooseUsSection from "../home/WhyChooseUsSection";
 import OurTeamSection from "./OurTeamSection";
+import TestimonialsSection from "../home/TestimonialsSection";
 
 export default function About() {
   const navigate = useNavigate();
@@ -110,6 +111,9 @@ export default function About() {
 
          {/* OUR TEAM */}
     <OurTeamSection />
+
+     {/* سكشن Testimonials */}
+      <TestimonialsSection />
     </>
   );
 }
