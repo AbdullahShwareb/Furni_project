@@ -12,7 +12,7 @@ import RecentBlogSection from "./RecentBlogSection.jsx";
 
 
 
-
+   
 export default function Home() {
   const navigate = useNavigate();
 

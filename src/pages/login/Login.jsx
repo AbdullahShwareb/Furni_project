@@ -13,6 +13,7 @@ import useLogin from "../../hooks/useLogin";
 
 export default function Login() {
   const navigate = useNavigate();
+  const loginMutation = useLogin();
 
   const {
     register,
@@ -23,21 +24,34 @@ export default function Login() {
   const [serverError, setServerError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  const loginMutation = useLogin();
-
   const loginForm = (values) => {
     setServerError("");
     setSuccessMsg("");
 
     const payload = {
-      email: values.email?.trim(),
+      email: values.email.trim(),
       password: values.password,
     };
 
     loginMutation.mutate(payload, {
       onSuccess: (data) => {
-        const token = data?.token || data?.data?.token || data?.accessToken;
-        if (token) localStorage.setItem("token", token);
+        const token =
+          data?.token ||
+          data?.data?.token ||
+          data?.accessToken ||
+          data?.response?.token;
+
+        if (token) {
+          localStorage.setItem("token", token);
+        }
+
+        const userName =
+          data?.user?.fullName ||
+          data?.user?.userName ||
+          data?.user?.email ||
+          payload.email;
+
+        localStorage.setItem("userName", userName);
 
         setSuccessMsg("تم تسجيل الدخول");
 
@@ -45,70 +59,44 @@ export default function Login() {
           navigate("/home");
         }, 700);
       },
+
       onError: (err) => {
-        const apiMessage =
+        const msg =
           err?.response?.data?.message ||
           err?.response?.data?.error ||
-          err?.response?.data?.msg;
-        const status = err.response.status;
-
-        if (status === 400) {
-          setServerError(apiMessage || "بيانات الدخول غير صحيحة");
-        } else if (status === 401) {
-          setServerError("الإيميل أو كلمة المرور غلط");
-        } else {
-          setServerError(apiMessage || "فشل تسجيل الدخول");
-        }
+          "فشل تسجيل الدخول";
+        setServerError(msg);
       },
     });
   };
 
-  const isSubmitting = loginMutation.isPending;
-
   return (
     <Box
-      className="login-form"
       sx={{
         minHeight: "calc(100vh - 64px)",
         display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
         justifyContent: "center",
+        alignItems: "center",
         backgroundColor: "#f0f4f2",
-        px: 2,
       }}
     >
-      <Typography variant="h4" sx={{ fontWeight: 700, color: "#3b5d50" }}>
-        Login Page
-      </Typography>
-
       <Box
+        component="form"
         onSubmit={handleSubmit(loginForm)}
-        component={"form"}
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 2,
-          mt: 4,
-          width: "100%",
-          maxWidth: 420,
-        }}
+        sx={{ width: 420, bgcolor: "#fff", p: 4, borderRadius: 2 }}
       >
+        <Typography variant="h4" sx={{ mb: 3, color: "#3b5d50" }}>
+          Login
+        </Typography>
+
         {serverError && <Alert severity="error">{serverError}</Alert>}
         {successMsg && <Alert severity="success">{successMsg}</Alert>}
 
         <TextField
           label="Email"
           fullWidth
-          variant="outlined"
-          disabled={isSubmitting}
-          {...register("email", {
-            required: "الإيميل مطلوب",
-            pattern: {
-              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-              message: "صيغة الإيميل غير صحيحة",
-            },
-          })}
+          sx={{ mt: 2 }}
+          {...register("email", { required: "Email required" })}
           error={!!errors.email}
           helperText={errors.email?.message}
         />
@@ -117,45 +105,33 @@ export default function Login() {
           label="Password"
           type="password"
           fullWidth
-          variant="outlined"
-          disabled={isSubmitting}
-          {...register("password", {
-            required: "كلمة المرور مطلوبة",
-            minLength: { value: 6, message: "كلمة المرور قصيرة" },
-          })}
+          sx={{ mt: 2 }}
+          {...register("password", { required: "Password required" })}
           error={!!errors.password}
           helperText={errors.password?.message}
         />
 
-        <Typography sx={{ textAlign: "right", mt: -1 }}>
-          <Link
-            to="/auth/forgot-password"
-            style={{ color: "#3b5d50", fontWeight: 600, textDecoration: "none" }}
-          >
-            نسيت كلمة المرور؟
-          </Link>
-        </Typography>
-
         <Button
-          variant="contained"
           type="submit"
-          disabled={isSubmitting}
+          fullWidth
           sx={{
-            backgroundColor: "#3b5d50",
-            "&:hover": { backgroundColor: "#2d463d" },
-            py: 1.2,
+            mt: 3,
+            bgcolor: "#3b5d50",
+            "&:hover": { bgcolor: "#2d463d" },
           }}
+          disabled={loginMutation.isPending}
         >
-          {isSubmitting ? <CircularProgress size={24} /> : "Login"}
+          {loginMutation.isPending ? (
+            <CircularProgress size={24} sx={{ color: "#fff" }} />
+          ) : (
+            "Login"
+          )}
         </Button>
 
-        <Typography sx={{ textAlign: "center", mt: 1 }}>
-          ما في عندك حساب؟{" "}
-          <Link
-            to="/auth/register"
-            style={{ color: "#3b5d50", fontWeight: 700, textDecoration: "none" }}
-          >
-            سجل الآن...
+        <Typography sx={{ mt: 2, textAlign: "center" }}>
+          ما عندك حساب؟{" "}
+          <Link to="/auth/register" style={{ color: "#3b5d50" }}>
+            Register
           </Link>
         </Typography>
       </Box>
