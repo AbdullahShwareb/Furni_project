@@ -1,8 +1,6 @@
 import axiosInstance from "./axiosInstance";
 
-// جلب كل المنتجات
 export async function getProductsApi() {
-  // لو الــ API عندك بحاجة lang شيل params او عدّلها حسب ما بدّك
   const res = await axiosInstance.get("/Products", {
     params: { lang: "en" },
   });

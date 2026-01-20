@@ -112,7 +112,7 @@ export default function About() {
          {/* OUR TEAM */}
     <OurTeamSection />
 
-     {/* سكشن Testimonials */}
+     {/* Testimonials */}
       <TestimonialsSection />
     </>
   );
