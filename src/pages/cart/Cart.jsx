@@ -1,8 +1,14 @@
+import { useNavigate } from "react-router-dom";
 import useCartPage from "../../hooks/useCartPage";
 import CartView from "./CartView";
 
 export default function Cart() {
   const cart = useCartPage();
+  const navigate = useNavigate();
+
+  const handleCheckout = () => {
+    navigate("/checkout");
+  };
 
   return (
     <CartView
@@ -14,6 +20,7 @@ export default function Cart() {
       onInc={cart.inc}
       onRemove={cart.removeItem}
       onClear={cart.clearAll}
+      onCheckout={handleCheckout} 
     />
   );
 }

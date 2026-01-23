@@ -1,15 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { getProductsApi } from "../api/productsApi";
+import { useCategories } from "./useCategories";
 
 export default function useShopProducts() {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["products"],
-    queryFn: getProductsApi,
-    staleTime: 60 * 1000,
-  });
-
-    const [page, setPage] = useState(1);
+  const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState("all");
   const [minPrice, setMinPrice] = useState("");
@@ -19,26 +14,55 @@ export default function useShopProducts() {
 
   const PAGE_SIZE = 6;
 
-  
-  const allItems = useMemo(() => {
-    const payload = data;
+  // =============== Products ===============
+  const {
+    data: productsData = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["products-shop", categoryId],
+    queryFn: () =>
+      getProductsApi({
+        limit: 1000,
+        categoryId: categoryId === "all" ? undefined : categoryId,
+      }),
+    staleTime: 60 * 1000,
+  });
 
-    if (Array.isArray(payload)) return payload;
-    if (payload && Array.isArray(payload.response)) return payload.response;
-    if (payload && payload.response && Array.isArray(payload.response.items))
-      return payload.response.items;
-    if (payload && payload.response && Array.isArray(payload.response.data))
-      return payload.response.data;
-    if (payload && Array.isArray(payload.items)) return payload.items;
-    if (payload && Array.isArray(payload.data)) return payload.data;
+  const allItems = useMemo(
+    () => (Array.isArray(productsData) ? productsData : []),
+    [productsData]
+  );
 
-    return [];
-  }, [data]);
+  // =============== Categories ===============
+  const { data: categoriesRaw } = useCategories();
 
-  // فلترة + ترتيب
+  const categories = useMemo(() => {
+    const raw = categoriesRaw ?? [];
+    const list = Array.isArray(raw)
+      ? raw
+      : Array.isArray(raw.response)
+      ? raw.response
+      : Array.isArray(raw.data)
+      ? raw.data
+      : [];
+
+    return list.map((c, idx) => ({
+      id: c.id ?? c.categoryId ?? c.Id ?? idx,
+      name:
+        c.name ??
+        c.nameEn ??
+        c.nameAr ??
+        c.title ??
+        `Category #${idx + 1}`,
+    }));
+  }, [categoriesRaw]);
+
+  // =============== Filter + Sort ===============
   const filtered = useMemo(() => {
     let list = allItems.slice();
 
+    // search
     if (search) {
       const q = String(search).toLowerCase();
       list = list.filter((p) => {
@@ -47,22 +71,26 @@ export default function useShopProducts() {
       });
     }
 
+    // category
     if (categoryId !== "all") {
       list = list.filter(
         (p) => String(p && p.categoryId) === String(categoryId)
       );
     }
 
+    // min price
     if (minPrice !== "") {
       const min = Number(minPrice);
       list = list.filter((p) => Number((p && p.price) || 0) >= min);
     }
 
+    // max price
     if (maxPrice !== "") {
       const max = Number(maxPrice);
       list = list.filter((p) => Number((p && p.price) || 0) <= max);
     }
 
+    // sort
     list.sort((a, b) => {
       const aVal = a ? a[sortBy] : undefined;
       const bVal = b ? b[sortBy] : undefined;
@@ -79,9 +107,17 @@ export default function useShopProducts() {
     });
 
     return list;
-  }, [allItems, search, categoryId, minPrice, maxPrice, sortBy, sortDir]);
+  }, [
+    allItems,
+    search,
+    categoryId,
+    minPrice,
+    maxPrice,
+    sortBy,
+    sortDir,
+  ]);
 
-  // Pagination
+  // =============== Pagination ===============
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
@@ -102,9 +138,8 @@ export default function useShopProducts() {
     loading: isLoading,
     err: error ? error.message : "",
 
-    categories: [], 
+    categories,
     pageItems,
-
     total,
     totalPages,
     page,

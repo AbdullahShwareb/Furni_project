@@ -21,12 +21,13 @@ export default function CartView({
   onInc,
   onRemove,
   onClear,
+  onCheckout,
 }) {
   const subtotal = useMemo(() => {
     return items.reduce((sum, it) => {
       const line =
         Number(it.totalPrice) ||
-        (Number(it.price || 0) * Number(it.count || 0));
+        Number(it.price || 0) * Number(it.count || 0);
       return sum + line;
     }, 0);
   }, [items]);
@@ -211,7 +212,10 @@ export default function CartView({
                 flexWrap: "wrap",
               }}
             >
-              <button style={pillBtnStyle} onClick={() => window.location.reload()}>
+              <button
+                style={pillBtnStyle}
+                onClick={() => window.location.reload()}
+              >
                 Update Cart
               </button>
 
@@ -324,7 +328,7 @@ export default function CartView({
                     marginTop: 16,
                     width: "100%",
                   }}
-                  onClick={() => alert("Checkout later ")}
+                  onClick={onCheckout} 
                 >
                   Proceed To Checkout
                 </button>

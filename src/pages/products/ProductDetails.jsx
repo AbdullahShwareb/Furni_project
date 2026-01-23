@@ -22,9 +22,10 @@ export default function ProductDetails() {
   const [adding, setAdding] = useState(false);
 
   if (isLoading) return <div style={{ padding: 16 }}>Loading details...</div>;
-  if (isError) return (
-    <div style={{ padding: 16, color: "red" }}>Error loading product.</div>
-  );
+  if (isError)
+    return (
+      <div style={{ padding: 16, color: "red" }}>Error loading product.</div>
+    );
 
   if (!product) {
     return (
@@ -40,21 +41,34 @@ export default function ProductDetails() {
   const productId =
     product?.id ?? product?.productId ?? product?.ProductId ?? product?.Id;
 
+  const translations =
+    product?.translations || product?.Translations || product?.TranslationsList;
+
+  const enTrans =
+    Array.isArray(translations) &&
+    translations.find((t) => t?.language === "en");
+
+  const firstTrans =
+    Array.isArray(translations) && translations.length > 0
+      ? translations[0]
+      : null;
+
   const title =
     product?.name ??
     product?.title ??
-    product?.Translations?.find((t) => t?.language === "en")?.name ??
-    product?.Translations?.[0]?.name ??
+    enTrans?.name ??
+    firstTrans?.name ??
     "Product";
 
   const desc =
     product?.description ??
-    product?.Translations?.find((t) => t?.language === "en")?.description ??
-    product?.Translations?.[0]?.description ??
+    enTrans?.description ??
+    firstTrans?.description ??
     "";
 
-  const price = product?.price ?? product?.Price;
+  const price = product?.price ?? product?.Price ?? 0;
 
+  // reviews
   const reviews =
     (Array.isArray(product?.reviews) && product.reviews) ||
     (Array.isArray(product?.Reviews) && product.Reviews) ||
@@ -78,11 +92,10 @@ export default function ProductDetails() {
       await addToCartApi(productId, 1);
       setMsg(" Added to cart");
     } catch (e) {
-      void e;
-      setMsg(" Add to cart failed");
-    } finally {
-      setAdding(false);
-    }
+  console.error("Add to cart error:", e);
+  setMsg(" Add to cart failed");
+}
+
   };
 
   return (

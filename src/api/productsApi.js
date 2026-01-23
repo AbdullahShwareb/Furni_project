@@ -1,29 +1,58 @@
 import axiosInstance from "./axiosInstance";
 
-export async function getProductsApi() {
-  const res = await axiosInstance.get("/Products", {
-    params: { lang: "en" },
-  });
-
-  const data = res.data;
-
+function normalizeProductsList(data) {
   if (Array.isArray(data)) return data;
-
-  if (data && Array.isArray(data.response)) return data.response;
+  if (data && Array.isArray(data.items)) return data.items;
+  if (data && Array.isArray(data.data)) return data.data;
   if (data && data.response && Array.isArray(data.response.items))
     return data.response.items;
   if (data && data.response && Array.isArray(data.response.data))
     return data.response.data;
-
-  if (data && Array.isArray(data.items)) return data.items;
-  if (data && Array.isArray(data.data)) return data.data;
-
   return [];
 }
 
+export async function fetchProductsApi({ lang = "en", limit = 12 } = {}) {
+  const res = await axiosInstance.get("/Products", {
+    params: { limit },
+    headers: {
+      "Accept-Language": lang,
+    },
+  });
+
+  return normalizeProductsList(res.data);
+}
+
+export async function getProductsApi({ limit = 1000, categoryId } = {}) {
+  let url = "/Products";
+  const params = { limit };
+
+  if (categoryId && categoryId !== "all") {
+    url = `/Products/category/${categoryId}`;
+  }
+
+  const res = await axiosInstance.get(url, {
+    params,
+    headers: {
+      "Accept-Language": "en",
+    },
+  });
+
+  return normalizeProductsList(res.data);
+}
+
+// ✅ تفاصيل المنتج
 export async function getProductDetailsApi(id) {
   const res = await axiosInstance.get(`/Products/${id}`, {
-    params: { lang: "en" },
+    headers: {
+      "Accept-Language": "en",
+    },
   });
-  return res.data;
+
+  const data = res.data;
+
+  // في حال الـ API رجّعها جوه data أو response
+  if (data && data.response) return data.response;
+  if (data && data.data) return data.data;
+
+  return data;
 }

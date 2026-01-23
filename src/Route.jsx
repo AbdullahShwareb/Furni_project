@@ -11,7 +11,7 @@ import Register from "./pages/register/Register.jsx";
 
 import Shop from "./pages/shop/Shop.jsx";
 import About from "./pages/about/About.jsx";
-import Services from "./pages/services/Services.jsx"; 
+import Services from "./pages/services/services.jsx";
 import Blog from "./pages/blog/Blog.jsx";
 import Contact from "./pages/contact/Contact.jsx";
 
@@ -21,6 +21,8 @@ import ForgotPassword from "./pages/forgotPassword/ForgotPassword.jsx";
 import ResetPassword from "./pages/resetPassword/ResetPassword.jsx";
 
 import ProductDetails from "./pages/products/ProductDetails.jsx";
+
+import Checkout from "./pages/checkout/Checkout.jsx";
 
 const router = createBrowserRouter([
   {
@@ -36,11 +38,13 @@ const router = createBrowserRouter([
       { path: "products/:id", element: <ProductDetails /> },
 
       { path: "about", element: <About /> },
-      { path: "services", element: <Services /> }, 
+      { path: "services", element: <Services /> },
       { path: "blog", element: <Blog /> },
       { path: "contact", element: <Contact /> },
 
       { path: "cart", element: <Cart /> },
+
+      { path: "checkout", element: <Checkout /> },
 
       { path: "*", element: <div style={{ padding: 20 }}>404 - Page not found</div> },
     ],

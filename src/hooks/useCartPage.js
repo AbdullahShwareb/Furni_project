@@ -7,6 +7,36 @@ import {
 } from "../api/cartApi";
 import { getProductsApi } from "../api/productsApi";
 
+function getPriceFromCartItem(it = {}) {
+  return (
+    it.price ??
+    it.Price ??
+    it.unitPrice ??
+    it.unitprice ??
+    it.productPrice ??
+    it.ProductPrice ??
+    it.sellingPrice ??
+    it.SellingPrice ??
+    0
+  );
+}
+
+function getPriceFromProduct(prod = {}) {
+  return (
+    prod.price ??
+    prod.Price ??
+    prod.unitPrice ??
+    prod.unitprice ??
+    prod.productPrice ??
+    prod.ProductPrice ??
+    prod.sellingPrice ??
+    prod.SellingPrice ??
+    prod.priceAfterDiscount ??
+    prod.discountedPrice ??
+    0
+  );
+}
+
 export default function useCartPage() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,27 +47,38 @@ export default function useCartPage() {
     setMsg("");
 
     try {
-      const [cartRaw, products] = await Promise.all([
+      const [cartRaw, productsRaw] = await Promise.all([
         getCartItemsApi(),
-        getProductsApi(),
+        getProductsApi({ limit: 1000 }),
       ]);
 
-     
+      const products = Array.isArray(productsRaw)
+        ? productsRaw
+        : Array.isArray(productsRaw?.data)
+        ? productsRaw.data
+        : Array.isArray(productsRaw?.response)
+        ? productsRaw.response
+        : [];
+
       let cartItems = [];
       if (Array.isArray(cartRaw)) cartItems = cartRaw;
       else if (cartRaw && Array.isArray(cartRaw.items)) cartItems = cartRaw.items;
-      else cartItems = [];
 
       const productMap = new Map();
       (products || []).forEach((p) => {
-        const id = p.id || p.productId || p.ProductId;
+        const id = p?.id ?? p?.productId ?? p?.ProductId;
         if (!id) return;
-        productMap.set(id, p);
+        productMap.set(String(id), p);
       });
 
-      const enriched = cartItems.map((it) => {
-        const prod = productMap.get(it.productId) || {};
+      const enriched = (cartItems || []).map((it) => {
+        const pid =
+          it.productId ?? it.ProductId ?? it.productID ?? it.id ?? null;
+
+        const prod = pid ? productMap.get(String(pid)) || {} : {};
+
         const imageUrl =
+          it.imageUrl ||
           prod.imageUrl ||
           prod.image ||
           prod.img ||
@@ -46,15 +87,39 @@ export default function useCartPage() {
           prod.photoUrl ||
           "";
 
+        const productName =
+          it.productName ||
+          prod.name ||
+          prod.title ||
+          prod.productName ||
+          `Product #${pid ?? ""}`;
+
+        const priceFromItem = getPriceFromCartItem(it);
+        const priceFromProduct = getPriceFromProduct(prod);
+
+        const price = priceFromItem || priceFromProduct || 0;
+
+        const count = it.count ?? it.qty ?? it.quantity ?? 1;
+
+        const totalPrice =
+          it.totalPrice ||
+          it.TotalPrice ||
+          Number(price || 0) * Number(count || 0);
+
         return {
           ...it,
-          imageUrl, 
+          productId: pid,
+          productName,
+          price,
+          count,
+          totalPrice,
+          imageUrl,
         };
       });
 
       setItems(enriched);
     } catch (e) {
-      console.log(e);
+      console.log("cart load error", e);
       setItems([]);
       setMsg("Failed to load cart");
     } finally {
@@ -68,7 +133,7 @@ export default function useCartPage() {
 
   async function inc(item) {
     try {
-      await updateCartQuantityApi(item.productId, item.count + 1);
+      await updateCartQuantityApi(item.productId, (item.count || 0) + 1);
       await load();
     } catch (e) {
       console.log(e);
@@ -78,7 +143,7 @@ export default function useCartPage() {
 
   async function dec(item) {
     try {
-      const next = item.count - 1;
+      const next = (item.count || 0) - 1;
       if (next <= 0) {
         await removeFromCartApi(item.productId);
       } else {
