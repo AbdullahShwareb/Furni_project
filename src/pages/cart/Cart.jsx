@@ -6,9 +6,9 @@ export default function Cart() {
   const cart = useCartPage();
   const navigate = useNavigate();
 
-  const handleCheckout = () => {
+  function handleCheckout() {
     navigate("/checkout");
-  };
+  }
 
   return (
     <CartView
@@ -20,7 +20,16 @@ export default function Cart() {
       onInc={cart.inc}
       onRemove={cart.removeItem}
       onClear={cart.clearAll}
-      onCheckout={handleCheckout} 
+      onCheckout={handleCheckout}   
     />
   );
 }
+
+
+
+
+
+
+
+
+

@@ -1,6 +1,5 @@
 import axiosInstance from "./axiosInstance";
 
-// Get cart items
 export async function getCartItemsApi() {
   const res = await axiosInstance.get("/Carts");
   const data = res.data;
@@ -14,7 +13,6 @@ export async function getCartItemsApi() {
   return [];
 }
 
-// Add to cart
 export async function addToCartApi(productId, count) {
   const res = await axiosInstance.post("/Carts", {
     ProductId: productId,
@@ -24,19 +22,17 @@ export async function addToCartApi(productId, count) {
 }
 
 export async function updateCartQuantityApi(productId, count) {
-  const res = await axiosInstance.patch(`/Carts/${productId}`, {
-    count, // NOT Count
+  const res = await axiosInstance.patch("/Carts/" + productId, {
+    Count: count,
   });
   return res.data;
 }
 
-// Remove one item
 export async function removeFromCartApi(productId) {
-  const res = await axiosInstance.delete(`/Carts/${productId}`);
+  const res = await axiosInstance.delete("/Carts/" + productId);
   return res.data;
 }
 
-// Clear all cart
 export async function clearCartApi() {
   const res = await axiosInstance.delete("/Carts/clear");
   return res.data;

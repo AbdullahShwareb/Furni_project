@@ -21,7 +21,7 @@ export default function CartView({
   onInc,
   onRemove,
   onClear,
-  onCheckout,
+  onCheckout,        
 }) {
   const subtotal = useMemo(() => {
     return items.reduce((sum, it) => {
@@ -79,7 +79,8 @@ export default function CartView({
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "180px 1fr 140px 180px 140px 90px",
+                  gridTemplateColumns:
+                    "180px 1fr 140px 180px 140px 90px",
                   gap: 0,
                   padding: "18px 18px",
                   fontWeight: 700,
@@ -106,7 +107,8 @@ export default function CartView({
                     key={item.productId}
                     style={{
                       display: "grid",
-                      gridTemplateColumns: "180px 1fr 140px 180px 140px 90px",
+                      gridTemplateColumns:
+                        "180px 1fr 140px 180px 140px 90px",
                       padding: "18px",
                       alignItems: "center",
                       borderBottom: "1px solid #f0f0f0",
@@ -137,7 +139,9 @@ export default function CartView({
                             }}
                           />
                         ) : (
-                          <span style={{ opacity: 0.5, fontSize: 12 }}>
+                          <span
+                            style={{ opacity: 0.5, fontSize: 12 }}
+                          >
                             No Image
                           </span>
                         )}
@@ -145,7 +149,12 @@ export default function CartView({
                     </div>
 
                     {/* Product */}
-                    <div style={{ fontWeight: 700, fontSize: 18 }}>
+                    <div
+                      style={{
+                        fontWeight: 700,
+                        fontSize: 18,
+                      }}
+                    >
                       {item.productName}
                     </div>
 
@@ -155,7 +164,12 @@ export default function CartView({
                     </div>
 
                     {/* Qty */}
-                    <div style={{ display: "flex", justifyContent: "center" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "center",
+                      }}
+                    >
                       <div
                         style={{
                           display: "flex",
@@ -230,6 +244,7 @@ export default function CartView({
                 style={{
                   ...pillBtnStyle,
                   background: "#fff",
+                  color: "#111",
                   border: "1px solid #e1e1e1",
                 }}
                 onClick={onClear}
@@ -256,14 +271,31 @@ export default function CartView({
                   padding: 20,
                 }}
               >
-                <div style={{ fontSize: 28, fontWeight: 800, marginBottom: 8 }}>
+                <div
+                  style={{
+                    fontSize: 28,
+                    fontWeight: 800,
+                    marginBottom: 8,
+                  }}
+                >
                   Coupon
                 </div>
-                <div style={{ opacity: 0.75, marginBottom: 14 }}>
+                <div
+                  style={{
+                    opacity: 0.75,
+                    marginBottom: 14,
+                  }}
+                >
                   Enter your coupon code if you have one.
                 </div>
 
-                <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 14,
+                    flexWrap: "wrap",
+                  }}
+                >
                   <input
                     placeholder="Coupon Code"
                     style={{
@@ -289,7 +321,13 @@ export default function CartView({
                   padding: 20,
                 }}
               >
-                <div style={{ fontSize: 28, fontWeight: 800, marginBottom: 12 }}>
+                <div
+                  style={{
+                    fontSize: 28,
+                    fontWeight: 800,
+                    marginBottom: 12,
+                  }}
+                >
                   CART TOTALS
                 </div>
 
@@ -328,7 +366,7 @@ export default function CartView({
                     marginTop: 16,
                     width: "100%",
                   }}
-                  onClick={onCheckout} 
+                  onClick={onCheckout}
                 >
                   Proceed To Checkout
                 </button>

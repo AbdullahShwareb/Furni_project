@@ -1,212 +1,347 @@
-import React, { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import useProductDetails from "../../hooks/useProductDetails";
 import { addToCartApi } from "../../api/cartApi";
 
-function Stars({ value = 0 }) {
-  const v = Math.max(0, Math.min(5, Number(value) || 0));
-  return (
-    <span style={{ letterSpacing: 2 }}>
-      {"★".repeat(Math.round(v))}
-      {"☆".repeat(5 - Math.round(v))}
-    </span>
-  );
-}
-
 export default function ProductDetails() {
   const { id } = useParams();
-  const nav = useNavigate();
-  const { data: product, isLoading, isError } = useProductDetails(id);
+  const navigate = useNavigate();
 
-  const [msg, setMsg] = useState("");
+  const { data: product, isLoading, isError, error } = useProductDetails(id);
+
   const [adding, setAdding] = useState(false);
+  const [msg, setMsg] = useState("");
 
-  if (isLoading) return <div style={{ padding: 16 }}>Loading details...</div>;
-  if (isError)
+  if (isLoading) {
     return (
-      <div style={{ padding: 16, color: "red" }}>Error loading product.</div>
-    );
-
-  if (!product) {
-    return (
-      <div style={{ padding: 16 }}>
-        <div style={{ marginBottom: 12, fontWeight: 700 }}>
-          Product not found
-        </div>
-        <button onClick={() => nav("/shop")}>Back to shop</button>
+      <div style={{ padding: 24 }}>
+        <p>Loading product...</p>
       </div>
     );
   }
 
-  const productId =
-    product?.id ?? product?.productId ?? product?.ProductId ?? product?.Id;
+  if (isError || !product) {
+    return (
+      <div style={{ padding: 24 }}>
+        <h2>Error</h2>
+        <p>{error?.message || "Failed to load product"}</p>
+      </div>
+    );
+  }
 
-  const translations =
-    product?.translations || product?.Translations || product?.TranslationsList;
+  const {
+    name,
+    description,
+    price,
+    rate,
+    quantity,
+    image,
+    subImages,
+    reviews,
+  } = product;
 
-  const enTrans =
-    Array.isArray(translations) &&
-    translations.find((t) => t?.language === "en");
+  const mainImage =
+    image ||
+    (Array.isArray(subImages) && subImages.length > 0 ? subImages[0] : "");
 
-  const firstTrans =
-    Array.isArray(translations) && translations.length > 0
-      ? translations[0]
-      : null;
+  const avgRate = rate ?? 0;
+  const reviewsCount = Array.isArray(reviews) ? reviews.length : 0;
 
-  const title =
-    product?.name ??
-    product?.title ??
-    enTrans?.name ??
-    firstTrans?.name ??
-    "Product";
-
-  const desc =
-    product?.description ??
-    enTrans?.description ??
-    firstTrans?.description ??
-    "";
-
-  const price = product?.price ?? product?.Price ?? 0;
-
-  // reviews
-  const reviews =
-    (Array.isArray(product?.reviews) && product.reviews) ||
-    (Array.isArray(product?.Reviews) && product.Reviews) ||
-    (Array.isArray(product?.response?.reviews) && product.response.reviews) ||
-    [];
-
-  const avgRate =
-    product?.rate ??
-    product?.rating ??
-    (reviews.length
-      ? reviews.reduce((a, r) => a + (Number(r?.rating) || 0), 0) /
-        reviews.length
-      : 0);
-
-  const handleAddToCart = async () => {
-    if (!productId) return;
-
-    setMsg("");
-    setAdding(true);
-    try {
-      await addToCartApi(productId, 1);
-      setMsg(" Added to cart");
-    } catch (e) {
-  console.error("Add to cart error:", e);
-  setMsg(" Add to cart failed");
-}
-
+  const renderStars = (value) => {
+    const stars = [];
+    for (let i = 1; i <= 5; i += 1) {
+      stars.push(
+        <span key={i} style={{ color: i <= value ? "#f5b50a" : "#ddd" }}>
+          ★
+        </span>
+      );
+    }
+    return stars;
   };
 
-  return (
-    <div style={{ padding: 16, maxWidth: 900, margin: "0 auto" }}>
-      <button onClick={() => nav(-1)} style={{ marginBottom: 16 }}>
-        ← Back
-      </button>
+  async function handleAddToCart() {
+    try {
+      setAdding(true);
+      setMsg("");
 
+      await addToCartApi(product.id, 1);
+
+      setMsg(" تم إضافة المنتج إلى السلة");
+    } catch (e) {
+      console.error(e);
+      setMsg(" فشل في إضافة المنتج إلى السلة");
+    } finally {
+      setAdding(false);
+    }
+  }
+
+  function goToCart() {
+    navigate("/cart");
+  }
+
+  function goToCheckout() {
+    navigate("/checkout");
+  }
+
+  function goBack() {
+    navigate(-1);
+  }
+
+  return (
+    <div style={{ background: "#f5f5f5", minHeight: "100vh", padding: "40px 0" }}>
       <div
         style={{
-          border: "1px solid #eee",
-          borderRadius: 12,
-          padding: 16,
+          maxWidth: 1100,
+          margin: "0 auto",
+          padding: "0 16px",
         }}
       >
-        <h2 style={{ marginTop: 0 }}>{title}</h2>
-
-        {price != null && (
-          <div style={{ fontWeight: 700, marginBottom: 10 }}>
-            Price: {price} ₪
-          </div>
-        )}
-
-        <div style={{ marginBottom: 12, color: "#444" }}>
-          <Stars value={avgRate} />{" "}
-          <span style={{ opacity: 0.7, marginLeft: 8 }}>
-            ({reviews.length} reviews)
-          </span>
-        </div>
-
-        {desc && <p style={{ lineHeight: 1.7 }}>{desc}</p>}
-
-        <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
-          <button onClick={handleAddToCart} disabled={adding}>
-            {adding ? "Adding..." : "ADD TO CART"}
-          </button>
-          <button onClick={() => nav("/cart")}>GO TO CART</button>
-        </div>
-
-        {msg ? <p style={{ marginTop: 10 }}>{msg}</p> : null}
-
-        {/* Reviews section */}
-        <div
+        <button
+          onClick={goBack}
           style={{
-            marginTop: 20,
-            paddingTop: 16,
-            borderTop: "1px solid #eee",
+            marginBottom: 16,
+            borderRadius: 999,
+            border: "1px solid #ddd",
+            background: "#fff",
+            padding: "6px 14px",
+            cursor: "pointer",
           }}
         >
-          <h3 style={{ margin: 0, marginBottom: 12 }}>Reviews</h3>
+           Back
+        </button>
 
-          {reviews.length === 0 ? (
-            <div style={{ opacity: 0.7 }}>No reviews yet.</div>
-          ) : (
-            <div style={{ display: "grid", gap: 12 }}>
-              {reviews.map((r, idx) => (
-                <div
-                  key={idx}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "minmax(0, 420px) minmax(0, 1fr)",
+            gap: 32,
+            alignItems: "flex-start",
+          }}
+        >
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: 18,
+              padding: 16,
+              border: "1px solid #e3e3e3",
+            }}
+          >
+            <div
+              style={{
+                width: "100%",
+                paddingBottom: "100%",
+                position: "relative",
+                borderRadius: 14,
+                overflow: "hidden",
+                background: "#f0f0f0",
+              }}
+            >
+              {mainImage ? (
+                <img
+                  src={mainImage}
+                  alt={name}
                   style={{
-                    border: "1px solid #f0f0f0",
-                    borderRadius: 10,
-                    padding: 12,
-                    background: "#fafafa",
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "contain",
+                  }}
+                />
+              ) : (
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#999",
+                    fontSize: 14,
                   }}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      gap: 12,
-                    }}
-                  >
-                    <div style={{ fontWeight: 700 }}>
-                      {r?.userName || r?.user || r?.email || "User"}
-                    </div>
-                    <div style={{ color: "#333" }}>
-                      <Stars value={r?.rating} />
-                    </div>
-                  </div>
-
-                  {r?.comment ? (
-                    <div
-                      style={{
-                        marginTop: 8,
-                        color: "#555",
-                        lineHeight: 1.6,
-                      }}
-                    >
-                      {r.comment}
-                    </div>
-                  ) : null}
-
-                  {r?.createdAt ? (
-                    <div
-                      style={{
-                        marginTop: 8,
-                        fontSize: 12,
-                        opacity: 0.6,
-                      }}
-                    >
-                      {new Date(r.createdAt).toLocaleString()}
-                    </div>
-                  ) : null}
+                  No Image
                 </div>
-              ))}
+              )}
             </div>
-          )}
+          </div>
+
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: 18,
+              padding: 24,
+              border: "1px solid #e3e3e3",
+            }}
+          >
+            <h1
+              style={{
+                margin: 0,
+                marginBottom: 8,
+                fontSize: 26,
+                fontWeight: 800,
+              }}
+            >
+              {name}
+            </h1>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                marginBottom: 8,
+              }}
+            >
+              <span>{renderStars(avgRate)}</span>
+              <span style={{ fontSize: 14, color: "#666" }}>
+                ({reviewsCount} reviews)
+              </span>
+            </div>
+
+            <div
+              style={{
+                marginBottom: 16,
+                fontSize: 20,
+                fontWeight: 700,
+              }}
+            >
+              Price: {Number(price || 0).toFixed(2)} ₪
+            </div>
+
+            <div style={{ marginBottom: 16, fontSize: 14, color: "#555" }}>
+              Available Quantity:{" "}
+              <span style={{ fontWeight: 600 }}>{quantity}</span>
+            </div>
+
+            <div
+              style={{
+                marginBottom: 20,
+                maxHeight: 220,
+                overflowY: "auto",
+                fontSize: 15,
+                lineHeight: 1.6,
+                whiteSpace: "pre-wrap",
+              }}
+            >
+              {description}
+            </div>
+
+            {msg && (
+              <div
+                style={{
+                  marginBottom: 12,
+                  padding: "8px 12px",
+                  borderRadius: 10,
+                  background: msg.startsWith("") ? "#e8f7ef" : "#ffecec",
+                  color: msg.startsWith("") ? "#0f6b3c" : "#b32020",
+                  fontSize: 14,
+                }}
+              >
+                {msg}
+              </div>
+            )}
+
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+              <button
+                onClick={handleAddToCart}
+                disabled={adding}
+                style={{
+                  padding: "10px 18px",
+                  borderRadius: 999,
+                  border: "none",
+                  background: "#111827",
+                  color: "#fff",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  opacity: adding ? 0.8 : 1,
+                }}
+              >
+                {adding ? "Adding..." : "ADD TO CART"}
+              </button>
+
+              <button
+                onClick={goToCart}
+                style={{
+                  padding: "10px 18px",
+                  borderRadius: 999,
+                  border: "1px solid #111827",
+                  background: "#fff",
+                  color: "#111827",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                GO TO CART
+              </button>
+
+              <button
+                onClick={goToCheckout}
+                style={{
+                  padding: "10px 18px",
+                  borderRadius: 999,
+                  border: "1px solid #111827",
+                  background: "#111827",
+                  color: "#fff",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Checkout
+              </button>
+            </div>
+          </div>
         </div>
 
-        <div style={{ marginTop: 16, opacity: 0.7, fontSize: 14 }}>
-          Product ID: {productId}
+        {/* Reviews */}
+        <div style={{ marginTop: 32 }}>
+          <h2 style={{ marginBottom: 12, fontSize: 20 }}>Reviews</h2>
+
+          {(!reviews || reviews.length === 0) && (
+            <div
+              style={{
+                background: "#fff",
+                borderRadius: 14,
+                padding: 16,
+                border: "1px solid #e3e3e3",
+              }}
+            >
+              No reviews yet.
+            </div>
+          )}
+
+          {Array.isArray(reviews) &&
+            reviews.map((rev, idx) => (
+              <div
+                key={idx}
+                style={{
+                  background: "#fff",
+                  borderRadius: 14,
+                  padding: 16,
+                  border: "1px solid #e3e3e3",
+                  marginBottom: 10,
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    marginBottom: 6,
+                  }}
+                >
+                  <strong>{rev.userName}</strong>
+                  <span>{renderStars(rev.rating || 0)}</span>
+                </div>
+                <p style={{ margin: 0, marginBottom: 4, fontSize: 14 }}>
+                  {rev.comment}
+                </p>
+                {rev.createdAt && (
+                  <div style={{ fontSize: 12, color: "#777" }}>
+                    {new Date(rev.createdAt).toLocaleString()}
+                  </div>
+                )}
+              </div>
+            ))}
         </div>
       </div>
     </div>
