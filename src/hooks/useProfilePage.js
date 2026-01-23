@@ -1,81 +1,32 @@
-import { useEffect, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getProfileApi,
-  updateProfileApi,
-  updateEmailApi,
+  changeEmailApi,
   changePasswordApi,
 } from "../api/profileApi";
 
 export default function useProfilePage() {
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [msg, setMsg] = useState("");
-  const [error, setError] = useState("");
+  const queryClient = useQueryClient();
 
-  async function load() {
-    setLoading(true);
-    setMsg("");
-    setError("");
-    try {
-      const data = await getProfileApi();
-      setProfile(data);
-    } catch (e) {
-      console.error(e);
-      setError("Failed to load profile");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const profileQuery = useQuery({
+    queryKey: ["profile"],
+    queryFn: getProfileApi,
+  });
 
-  useEffect(() => {
-    load();
-  }, []);
+  const changeEmailMutation = useMutation({
+    mutationFn: changeEmailApi,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+    },
+  });
 
-  async function saveBasic(values) {
-    try {
-      setError("");
-      setMsg("");
-      const updated = await updateProfileApi(values);
-      setProfile(updated);
-      setMsg("تم تحديث البيانات بنجاح ✅");
-    } catch (e) {
-      console.error(e);
-      setError("فشل تحديث البيانات");
-    }
-  }
-
-  async function saveEmail(values) {
-    try {
-      setError("");
-      setMsg("");
-      await updateEmailApi(values);
-      setMsg("تم تحديث الإيميل ✅");
-    } catch (e) {
-      console.error(e);
-      setError("فشل تحديث الإيميل");
-    }
-  }
-
-  async function savePassword(values) {
-    try {
-      setError("");
-      setMsg("");
-      await changePasswordApi(values);
-      setMsg("تم تغيير كلمة المرور ");
-    } catch (e) {
-      console.error(e);
-      setError("فشل تغيير كلمة المرور");
-    }
-  }
+  const changePasswordMutation = useMutation({
+    mutationFn: changePasswordApi,
+  });
 
   return {
-    profile,
-    loading,
-    msg,
-    error,
-    reload: load,
-    saveBasic,
-    saveEmail,
-    savePassword,
+    profileQuery,
+    changeEmailMutation,
+    changePasswordMutation,
   };
 }

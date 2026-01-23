@@ -1,267 +1,370 @@
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
+import useProfilePage from "../../hooks/useProfilePage";
 
-export default function ProfileView({
-  loading,
-  msg,
-  err,
+export default function ProfileView() {
+  const { profileQuery, changeEmailMutation, changePasswordMutation } =
+    useProfilePage();
 
-  basic,
-  email,
-  passwords,
+  const { data: profile, isLoading, isError, error } = profileQuery;
 
-  onChangeBasic,
-  onChangeEmail,
-  onChangePasswords,
+  const [newEmail, setNewEmail] = useState("");
+  const [pwdForm, setPwdForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmNewPassword: "",
+  });
 
-  onSaveBasic,
-  onSaveEmail,
-  onSavePasswords,
+  const [msg, setMsg] = useState("");
+  const [errMsg, setErrMsg] = useState("");
 
-  onReload,
-}) {
-  const [tab, setTab] = useState("basic"); // basic | email | password
+  useEffect(() => {
+    if (profile) {
+      setNewEmail(profile.email || "");
+
+      try {
+        localStorage.setItem("user", JSON.stringify(profile));
+        if (profile.fullName) {
+          localStorage.setItem("userName", profile.fullName);
+        } else if (profile.userName) {
+          localStorage.setItem("userName", profile.userName);
+        } else if (profile.email) {
+          localStorage.setItem("userName", profile.email);
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }, [profile]);
+
+  if (isLoading) {
+    return (
+      <div style={{ padding: 24 }}>
+        <h2>Loading profile...</h2>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div style={{ padding: 24 }}>
+        <h2 style={{ color: "red" }}>Error</h2>
+        <p>{error?.message || "Failed to load profile"}</p>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div style={{ padding: 24 }}>
+        <h2>No profile data</h2>
+      </div>
+    );
+  }
+
+  const fullName =
+    profile.fullName ||
+    profile.userName ||
+    profile.name ||
+    profile.email ||
+    "User";
+
+  const email = profile.email || "";
+  const phone = profile.phoneNumber || profile.phone || "";
+
+  // تغيير الإيميل
+  async function handleEmailSubmit(e) {
+    e.preventDefault();
+    setMsg("");
+    setErrMsg("");
+
+    try {
+      await changeEmailMutation.mutateAsync({ newEmail });
+      setMsg("تم تحديث البريد الإلكتروني بنجاح ");
+    } catch (err) {
+      console.error(err);
+      setErrMsg("فشل تعديل البريد الإلكتروني ");
+    }
+  }
+
+  // تغيير الباسورد
+  async function handlePasswordSubmit(e) {
+    e.preventDefault();
+    setMsg("");
+    setErrMsg("");
+
+    if (pwdForm.newPassword !== pwdForm.confirmNewPassword) {
+      setErrMsg("تأكيد كلمة المرور غير مطابق ");
+      return;
+    }
+
+    try {
+      await changePasswordMutation.mutateAsync(pwdForm);
+      setMsg("تم تغيير كلمة المرور بنجاح ");
+      setPwdForm({
+        currentPassword: "",
+        newPassword: "",
+        confirmNewPassword: "",
+      });
+    } catch (err) {
+      console.error(err);
+      setErrMsg("فشل تغيير كلمة المرور ");
+    }
+  }
 
   return (
-    <div style={{ padding: "32px 16px", maxWidth: 800, margin: "0 auto" }}>
-      <h2 style={{ marginBottom: 8 }}>Profile</h2>
-
-      <button
-        onClick={onReload}
-        disabled={loading}
+    <div
+      style={{
+        background: "#f5f5f5",
+        minHeight: "100vh",
+        padding: "40px 0",
+      }}
+    >
+      <div
         style={{
-          marginBottom: 16,
-          padding: "6px 14px",
-          borderRadius: 999,
-          border: "1px solid #ddd",
-          background: "#fff",
-          cursor: "pointer",
+          maxWidth: 900,
+          margin: "0 auto",
+          padding: "0 16px",
         }}
       >
-        {loading ? "Refreshing..." : "Reload profile"}
-      </button>
+        <h1 style={{ marginBottom: 8 }}>My Profile</h1>
+        <p style={{ marginTop: 0, marginBottom: 24, color: "#555" }}>
+          هنا يمكنك مشاهدة بيانات حسابك وتعديل البريد الإلكتروني وكلمة المرور.
+        </p>
 
-      {msg && (
+        {(msg || errMsg) && (
+          <div
+            style={{
+              marginBottom: 20,
+              padding: "10px 14px",
+              borderRadius: 10,
+              background: errMsg ? "#ffecec" : "#e8f7ef",
+              color: errMsg ? "#b32020" : "#0f6b3c",
+              fontSize: 14,
+            }}
+          >
+            {errMsg || msg}
+          </div>
+        )}
+
+        {/* AC INFO*/}
         <div
           style={{
-            marginBottom: 10,
-            padding: 10,
-            borderRadius: 10,
-            background: "#ecfdf3",
-            border: "1px solid #a7f3d0",
-            color: "#166534",
+            background: "#fff",
+            borderRadius: 16,
+            padding: 20,
+            border: "1px solid #e3e3e3",
+            marginBottom: 24,
           }}
         >
-          {msg}
-        </div>
-      )}
-      {err && (
-        <div
-          style={{
-            marginBottom: 10,
-            padding: 10,
-            borderRadius: 10,
-            background: "#fef2f2",
-            border: "1px solid #fecaca",
-            color: "#b91c1c",
-          }}
-        >
-          {err}
-        </div>
-      )}
+          <h2 style={{ marginTop: 0, marginBottom: 16, fontSize: 20 }}>
+            Account Info
+          </h2>
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
-        <button
-          onClick={() => setTab("basic")}
-          style={tabBtnStyle(tab === "basic")}
-        >
-          Basic info
-        </button>
-        <button
-          onClick={() => setTab("email")}
-          style={tabBtnStyle(tab === "email")}
-        >
-          Email
-        </button>
-        <button
-          onClick={() => setTab("password")}
-          style={tabBtnStyle(tab === "password")}
-        >
-          Password
-        </button>
-      </div>
-
-      {tab === "basic" && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            onSaveBasic();
-          }}
-          style={cardStyle}
-        >
-          <h3 style={{ marginTop: 0 }}>Basic information</h3>
-
-          <label style={labelStyle}>
-            Full name
+          <div style={{ marginBottom: 12 }}>
+            <label style={{ display: "block", fontSize: 14, color: "#555" }}>
+              Full Name
+            </label>
             <input
               type="text"
-              value={basic.fullName || ""}
-              onChange={(e) =>
-                onChangeBasic({ ...basic, fullName: e.target.value })
-              }
-              style={inputStyle}
+              value={fullName}
+              readOnly
+              style={{
+                width: "100%",
+                padding: "8px 10px",
+                borderRadius: 8,
+                border: "1px solid #ddd",
+                background: "#f9fafb",
+              }}
             />
-          </label>
+          </div>
 
-          <label style={labelStyle}>
-            Phone number
-            <input
-              type="text"
-              value={basic.phoneNumber || ""}
-              onChange={(e) =>
-                onChangeBasic({ ...basic, phoneNumber: e.target.value })
-              }
-              style={inputStyle}
-            />
-          </label>
-
-          <button type="submit" disabled={loading} style={primaryBtnStyle}>
-            {loading ? "Saving..." : "Save changes"}
-          </button>
-        </form>
-      )}
-
-      {tab === "email" && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            onSaveEmail();
-          }}
-          style={cardStyle}
-        >
-          <h3 style={{ marginTop: 0 }}>Update email</h3>
-
-          <label style={labelStyle}>
-            Email
+          <div style={{ marginBottom: 12 }}>
+            <label style={{ display: "block", fontSize: 14, color: "#555" }}>
+              Email
+            </label>
             <input
               type="email"
-              value={email.email || ""}
-              onChange={(e) =>
-                onChangeEmail({ ...email, email: e.target.value })
-              }
-              style={inputStyle}
+              value={email}
+              readOnly
+              style={{
+                width: "100%",
+                padding: "8px 10px",
+                borderRadius: 8,
+                border: "1px solid #ddd",
+                background: "#f9fafb",
+              }}
             />
-          </label>
+          </div>
 
-          <button type="submit" disabled={loading} style={primaryBtnStyle}>
-            {loading ? "Saving..." : "Save email"}
-          </button>
-        </form>
-      )}
+          <div>
+            <label style={{ display: "block", fontSize: 14, color: "#555" }}>
+              Phone Number
+            </label>
+            <input
+              type="text"
+              value={phone}
+              readOnly
+              style={{
+                width: "100%",
+                padding: "8px 10px",
+                borderRadius: 8,
+                border: "1px solid #ddd",
+                background: "#f9fafb",
+              }}
+            />
+          </div>
+        </div>
 
-      {tab === "password" && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            onSavePasswords();
+        {/* CHANGE EMAIL */}
+        <div
+          style={{
+            background: "#fff",
+            borderRadius: 16,
+            padding: 20,
+            border: "1px solid #e3e3e3",
+            marginBottom: 24,
           }}
-          style={cardStyle}
         >
-          <h3 style={{ marginTop: 0 }}>Change password</h3>
+          <h2 style={{ marginTop: 0, marginBottom: 16, fontSize: 20 }}>
+            Change Email
+          </h2>
 
-          <label style={labelStyle}>
-            Current password
-            <input
-              type="password"
-              value={passwords.currentPassword || ""}
-              onChange={(e) =>
-                onChangePasswords({
-                  ...passwords,
-                  currentPassword: e.target.value,
-                })
-              }
-              style={inputStyle}
-            />
-          </label>
+          <form onSubmit={handleEmailSubmit}>
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ display: "block", fontSize: 14, color: "#555" }}>
+                New Email
+              </label>
+              <input
+                type="email"
+                required
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "8px 10px",
+                  borderRadius: 8,
+                  border: "1px solid #ddd",
+                }}
+              />
+            </div>
 
-          <label style={labelStyle}>
-            New password
-            <input
-              type="password"
-              value={passwords.newPassword || ""}
-              onChange={(e) =>
-                onChangePasswords({
-                  ...passwords,
-                  newPassword: e.target.value,
-                })
-              }
-              style={inputStyle}
-            />
-          </label>
+            <button
+              type="submit"
+              disabled={changeEmailMutation.isPending}
+              style={{
+                marginTop: 6,
+                padding: "9px 18px",
+                borderRadius: 999,
+                border: "none",
+                background: "#111827",
+                color: "#fff",
+                fontWeight: 600,
+                cursor: "pointer",
+                opacity: changeEmailMutation.isPending ? 0.8 : 1,
+              }}
+            >
+              {changeEmailMutation.isPending ? "Saving..." : "Update Email"}
+            </button>
+          </form>
+        </div>
 
-          <label style={labelStyle}>
-            Confirm password
-            <input
-              type="password"
-              value={passwords.confirmPassword || ""}
-              onChange={(e) =>
-                onChangePasswords({
-                  ...passwords,
-                  confirmPassword: e.target.value,
-                })
-              }
-              style={inputStyle}
-            />
-          </label>
+        {/* CHANGE PASSWORD */}
+        <div
+          style={{
+            background: "#fff",
+            borderRadius: 16,
+            padding: 20,
+            border: "1px solid #e3e3e3",
+          }}
+        >
+          <h2 style={{ marginTop: 0, marginBottom: 16, fontSize: 20 }}>
+            Change Password
+          </h2>
 
-          <button type="submit" disabled={loading} style={primaryBtnStyle}>
-            {loading ? "Saving..." : "Change password"}
-          </button>
-        </form>
-      )}
+          <form onSubmit={handlePasswordSubmit}>
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ display: "block", fontSize: 14, color: "#555" }}>
+                Current Password
+              </label>
+              <input
+                type="password"
+                required
+                value={pwdForm.currentPassword}
+                onChange={(e) =>
+                  setPwdForm((f) => ({ ...f, currentPassword: e.target.value }))
+                }
+                style={{
+                  width: "100%",
+                  padding: "8px 10px",
+                  borderRadius: 8,
+                  border: "1px solid #ddd",
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ display: "block", fontSize: 14, color: "#555" }}>
+                New Password
+              </label>
+              <input
+                type="password"
+                required
+                value={pwdForm.newPassword}
+                onChange={(e) =>
+                  setPwdForm((f) => ({ ...f, newPassword: e.target.value }))
+                }
+                style={{
+                  width: "100%",
+                  padding: "8px 10px",
+                  borderRadius: 8,
+                  border: "1px solid #ddd",
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ display: "block", fontSize: 14, color: "#555" }}>
+                Confirm New Password
+              </label>
+              <input
+                type="password"
+                required
+                value={pwdForm.confirmNewPassword}
+                onChange={(e) =>
+                  setPwdForm((f) => ({
+                    ...f,
+                    confirmNewPassword: e.target.value,
+                  }))
+                }
+                style={{
+                  width: "100%",
+                  padding: "8px 10px",
+                  borderRadius: 8,
+                  border: "1px solid #ddd",
+                }}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={changePasswordMutation.isPending}
+              style={{
+                marginTop: 6,
+                padding: "9px 18px",
+                borderRadius: 999,
+                border: "none",
+                background: "#111827",
+                color: "#fff",
+                fontWeight: 600,
+                cursor: "pointer",
+                opacity: changePasswordMutation.isPending ? 0.8 : 1,
+              }}
+            >
+              {changePasswordMutation.isPending ? "Saving..." : "Update Password"}
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }
-
-const tabBtnStyle = (active) => ({
-  padding: "6px 14px",
-  borderRadius: 999,
-  border: active ? "1px solid #111" : "1px solid #ddd",
-  background: active ? "#111" : "#fff",
-  color: active ? "#fff" : "#111",
-  cursor: "pointer",
-  fontWeight: 600,
-});
-
-const cardStyle = {
-  background: "#fff",
-  borderRadius: 16,
-  border: "1px solid #e5e7eb",
-  padding: 20,
-};
-
-const labelStyle = {
-  display: "block",
-  marginBottom: 14,
-  fontSize: 14,
-  fontWeight: 500,
-};
-
-const inputStyle = {
-  width: "100%",
-  marginTop: 6,
-  padding: "10px 12px",
-  borderRadius: 10,
-  border: "1px solid #d1d5db",
-  outline: "none",
-};
-
-const primaryBtnStyle = {
-  marginTop: 8,
-  padding: "10px 20px",
-  borderRadius: 999,
-  border: "none",
-  background: "#111",
-  color: "#fff",
-  fontWeight: 700,
-  cursor: "pointer",
-};

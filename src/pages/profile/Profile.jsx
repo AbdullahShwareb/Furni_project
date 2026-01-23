@@ -1,19 +1,23 @@
-import ProfileView from "./ProfileView";
 import useProfilePage from "../../hooks/useProfilePage";
+import ProfileView from "./ProfileView";
 
 export default function Profile() {
-  const state = useProfilePage();
+  const p = useProfilePage();
 
   return (
     <ProfileView
-      loading={state.loading}
-      profile={state.profile}
-      msg={state.msg}
-      error={state.error}
-      onSaveBasic={state.saveBasic}
-      onSaveEmail={state.saveEmail}
-      onSavePassword={state.savePassword}
-      onReload={state.reload}
+      loading={p.loading}
+      msg={p.msg}
+      err={p.err}
+      basic={p.basic}
+      setBasic={p.setBasic}
+      email={p.email}
+      setEmail={p.setEmail}
+      passwords={p.passwords}
+      setPasswords={p.setPasswords}
+      onSaveBasic={p.saveBasic}
+      onSaveEmail={p.saveEmail}
+      onSavePassword={p.savePassword}
     />
   );
 }

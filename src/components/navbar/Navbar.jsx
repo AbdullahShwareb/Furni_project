@@ -24,31 +24,25 @@ const Navbar = () => {
     transition: "0.3s",
   });
 
-
   const [isLoggedIn, setIsLoggedIn] = useState(
     !!localStorage.getItem("token")
   );
   const [displayName, setDisplayName] = useState("");
 
-  const readUserName = () => {
-    const direct = localStorage.getItem("userName");
-    if (direct) return direct;
+const readUserName = () => {
+  const direct = localStorage.getItem("userName");
+  if (direct) return direct;
 
-    const raw = localStorage.getItem("user");
-    if (!raw) return "";
-    try {
-      const u = JSON.parse(raw);
-      return (
-        u?.fullName ||
-        u?.userName ||
-        u?.name ||
-        u?.email ||
-        ""
-      );
-    } catch {
-      return "";
-    }
-  };
+  const raw = localStorage.getItem("user");
+  if (!raw) return "";
+  try {
+    const u = JSON.parse(raw);
+    return u?.fullName || u?.userName || u?.name || "";
+  } catch {
+    return "";
+  }
+};
+
 
   useEffect(() => {
     const sync = () => {
@@ -68,6 +62,10 @@ const Navbar = () => {
     setIsLoggedIn(false);
     setDisplayName("");
     navigate("/auth/login");
+  };
+
+  const goProfile = () => {
+    navigate("/profile");
   };
 
   return (
@@ -124,6 +122,7 @@ const Navbar = () => {
         {isLoggedIn ? (
           <>
             <Typography
+              onClick={goProfile}
               sx={{
                 color: "#fff",
                 fontWeight: 700,
@@ -132,6 +131,8 @@ const Navbar = () => {
                 overflow: "hidden",
                 textOverflow: "ellipsis",
                 whiteSpace: "nowrap",
+                cursor: "pointer",
+                "&:hover": { textDecoration: "underline" },
               }}
               title={displayName || "User"}
             >
