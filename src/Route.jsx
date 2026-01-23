@@ -21,9 +21,8 @@ import ForgotPassword from "./pages/forgotPassword/ForgotPassword.jsx";
 import ResetPassword from "./pages/resetPassword/ResetPassword.jsx";
 
 import ProductDetails from "./pages/products/ProductDetails.jsx";
-
-import Checkout from "./pages/checkout/Checkout.jsx";
-
+import Profile from "./pages/profile/Profile.jsx";
+import Checkout from "./pages/checkout/Checkout.jsx"; 
 const router = createBrowserRouter([
   {
     path: "/",
@@ -33,7 +32,6 @@ const router = createBrowserRouter([
       { path: "home", element: <Home /> },
 
       { path: "categories", element: <Categories /> },
-
       { path: "shop", element: <Shop /> },
       { path: "products/:id", element: <ProductDetails /> },
 
@@ -43,6 +41,7 @@ const router = createBrowserRouter([
       { path: "contact", element: <Contact /> },
 
       { path: "cart", element: <Cart /> },
+      { path: "profile", element: <Profile /> },
 
       { path: "checkout", element: <Checkout /> },
 
@@ -56,10 +55,8 @@ const router = createBrowserRouter([
     children: [
       { path: "login", element: <Login /> },
       { path: "register", element: <Register /> },
-
       { path: "forgot-password", element: <ForgotPassword /> },
       { path: "reset-password", element: <ResetPassword /> },
-
       { path: "*", element: <div style={{ padding: 20 }}>404 - Page not found</div> },
     ],
   },

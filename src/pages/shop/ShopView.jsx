@@ -26,6 +26,7 @@ export default function ShopView({
   onOpenProduct = () => {},
   onGoPage = () => {},
 }) {
+ 
   const getImageUrl = (p) => {
     return (
       p?.imageUrl ||
@@ -45,7 +46,7 @@ export default function ShopView({
     <div style={{ padding: 20 }}>
       <h2>Shop</h2>
 
-      {/* Filter Bar */}
+      {/* ==================  Filter Bar  ================== */}
       <div
         style={{
           display: "flex",
@@ -117,7 +118,7 @@ export default function ShopView({
         </div>
       </div>
 
-      {/* Products List */}
+      {/* ==================  Products List  ================== */}
       {pageItems.length === 0 ? (
         <p>No products found.</p>
       ) : (
@@ -133,12 +134,11 @@ export default function ShopView({
             const price = p?.price ?? p?.Price ?? 0;
             const rate = p?.rate ?? p?.rating ?? 0;
             const img = getImageUrl(p);
-            const id = p.id ?? p.productId ?? p.ProductId ?? p.Id;
 
             return (
               <div
-                key={id}
-                onClick={() => onOpenProduct(id)}
+                key={p.id ?? p.productId}
+                onClick={() => onOpenProduct(p.id ?? p.productId)}
                 style={{
                   border: "1px solid #ddd",
                   borderRadius: 12,
@@ -172,11 +172,12 @@ export default function ShopView({
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
-                        onOpenProduct(id);
+                        onOpenProduct(p.id ?? p.productId);
                       }}
                     />
                   </div>
                 ) : (
+                  // placeholder 
                   <div
                     style={{
                       width: 120,
@@ -206,7 +207,7 @@ export default function ShopView({
         </div>
       )}
 
-      {/* Pagination */}
+      {/* ==================  Pagination  ================== */}
       <div
         style={{
           display: "flex",
@@ -226,10 +227,7 @@ export default function ShopView({
           Page <b>{page}</b> / {totalPages}
         </span>
 
-        <button
-          onClick={() => onGoPage(page + 1)}
-          disabled={page === totalPages}
-        >
+        <button onClick={() => onGoPage(page + 1)} disabled={page === totalPages}>
           {">"}
         </button>
         <button
