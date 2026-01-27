@@ -6,6 +6,10 @@ export async function addReviewApi(productId, { rating, comment }) {
     Comment: comment,
   };
 
-  const res = await axiosInstance.post(`/Products/${productId}/reviews`, payload);
+  const res = await axiosInstance.post(
+    `/Products/${productId}/reviews`,
+    payload
+  );
+
   return res.data;
 }

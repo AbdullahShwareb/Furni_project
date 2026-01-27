@@ -31,17 +31,28 @@ const Navbar = () => {
 
 const readUserName = () => {
   const direct = localStorage.getItem("userName");
-  if (direct) return direct;
+
+  if (direct) {
+    if (direct.includes("@")) {
+      return direct.split("@")[0];
+    }
+    return direct;
+  }
 
   const raw = localStorage.getItem("user");
   if (!raw) return "";
   try {
     const u = JSON.parse(raw);
-    return u?.fullName || u?.userName || u?.name || "";
+    const name = u?.fullName || u?.userName || u?.name || u?.email || "";
+    if (name.includes("@")) {
+      return name.split("@")[0];
+    }
+    return name;
   } catch {
     return "";
   }
 };
+
 
 
   useEffect(() => {

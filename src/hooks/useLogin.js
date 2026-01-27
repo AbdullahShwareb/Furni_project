@@ -34,11 +34,11 @@ export default function useLogin() {
       if (user) {
         localStorage.setItem("user", JSON.stringify(user));
 
-        const display =
-          user.fullName ||
-          user.userName ||
-          user.email ||
-          "";
+  const display =
+  user.fullName ||
+  user.userName ||
+  "";
+
 
         if (display) {
           localStorage.setItem("userName", display);

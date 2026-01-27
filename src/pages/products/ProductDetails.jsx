@@ -2,15 +2,34 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import useProductDetails from "../../hooks/useProductDetails";
 import { addToCartApi } from "../../api/cartApi";
+import { Rating, TextField, Button } from "@mui/material";
+import useAddReview from "../../hooks/useAddReview";
 
 export default function ProductDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const { data: product, isLoading, isError, error } = useProductDetails(id);
+  const {
+    data: product,
+    isLoading,
+    isError,
+    error,
+  } = useProductDetails(id);
 
   const [adding, setAdding] = useState(false);
   const [msg, setMsg] = useState("");
+
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
+
+  const {
+    mutate: addReview,
+    isPending: sendingReview,
+    isError: reviewIsError,
+    error: reviewError,
+  } = useAddReview(id);
+
+  const isLoggedIn = !!localStorage.getItem("token");
 
   if (isLoading) {
     return (
@@ -66,10 +85,10 @@ export default function ProductDetails() {
 
       await addToCartApi(product.id, 1);
 
-      setMsg(" تم إضافة المنتج إلى السلة");
+      setMsg("تم إضافة المنتج إلى السلة");
     } catch (e) {
       console.error(e);
-      setMsg(" فشل في إضافة المنتج إلى السلة");
+      setMsg("فشل في إضافة المنتج إلى السلة");
     } finally {
       setAdding(false);
     }
@@ -85,6 +104,21 @@ export default function ProductDetails() {
 
   function goBack() {
     navigate(-1);
+  }
+
+  function handleSubmitReview(e) {
+    e.preventDefault();
+    if (!reviewRating || !reviewComment.trim()) return;
+
+    addReview(
+      { rating: reviewRating, comment: reviewComment },
+      {
+        onSuccess: () => {
+          setReviewRating(0);
+          setReviewComment("");
+        },
+      }
+    );
   }
 
   return (
@@ -107,7 +141,7 @@ export default function ProductDetails() {
             cursor: "pointer",
           }}
         >
-           Back
+          Back
         </button>
 
         <div
@@ -233,8 +267,8 @@ export default function ProductDetails() {
                   marginBottom: 12,
                   padding: "8px 12px",
                   borderRadius: 10,
-                  background: msg.startsWith("") ? "#e8f7ef" : "#ffecec",
-                  color: msg.startsWith("") ? "#0f6b3c" : "#b32020",
+                  background: msg.includes("فشل") ? "#ffecec" : "#e8f7ef",
+                  color: msg.includes("فشل") ? "#b32020" : "#0f6b3c",
                   fontSize: 14,
                 }}
               >
@@ -293,7 +327,7 @@ export default function ProductDetails() {
           </div>
         </div>
 
-        {/* Reviews */}
+        {/* Reviews + Form */}
         <div style={{ marginTop: 32 }}>
           <h2 style={{ marginBottom: 12, fontSize: 20 }}>Reviews</h2>
 
@@ -342,6 +376,62 @@ export default function ProductDetails() {
                 )}
               </div>
             ))}
+
+          <div
+            style={{
+              marginTop: 24,
+              background: "#fff",
+              borderRadius: 14,
+              padding: 16,
+              border: "1px solid #e3e3e3",
+            }}
+          >
+            <h3 style={{ marginTop: 0, marginBottom: 12 }}>Add your review</h3>
+
+            {isLoggedIn ? (
+              <form onSubmit={handleSubmitReview}>
+                <div style={{ marginBottom: 12 }}>
+                  <Rating
+                    name="product-rating"
+                    value={reviewRating}
+                    onChange={(_, newValue) => setReviewRating(newValue)}
+                  />
+                </div>
+
+                <div style={{ marginBottom: 12 }}>
+                  <TextField
+                    label="Your comment"
+                    multiline
+                    minRows={3}
+                    fullWidth
+                    value={reviewComment}
+                    onChange={(e) => setReviewComment(e.target.value)}
+                  />
+                </div>
+
+                {reviewIsError && (
+                  <div style={{ color: "red", marginBottom: 8, fontSize: 14 }}>
+                    {reviewError?.response?.data?.message ||
+                      "Failed to submit review"}
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={
+                    sendingReview || !reviewRating || !reviewComment.trim()
+                  }
+                >
+                  {sendingReview ? "Sending..." : "Submit review"}
+                </Button>
+              </form>
+            ) : (
+              <p style={{ margin: 0, color: "#555" }}>
+                لتستطيع إضافة تقييم، قم بتسجيل الدخول أولاً.
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>
