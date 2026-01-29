@@ -1,370 +1,315 @@
-import React, { useEffect, useState } from "react";
-import useProfilePage from "../../hooks/useProfilePage";
+import React from "react";
+import {
+  Box,
+  Paper,
+  Typography,
+  Avatar,
+  TextField,
+  Button,
+  Grid,
+  Alert,
+  CircularProgress,
+  Divider,
+} from "@mui/material";
 
-export default function ProfileView() {
-  const { profileQuery, changeEmailMutation, changePasswordMutation } =
-    useProfilePage();
+function fullNameFromProfile(profile) {
+  if (!profile) return "User";
+  return (
+    profile.fullName ||
+    profile.userName ||
+    profile.name ||
+    profile.email ||
+    "User"
+  );
+}
 
-  const { data: profile, isLoading, isError, error } = profileQuery;
+function phoneFromProfile(profile) {
+  if (!profile) return "";
+  return profile.phoneNumber || profile.phone || "";
+}
 
-  const [newEmail, setNewEmail] = useState("");
-  const [pwdForm, setPwdForm] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmNewPassword: "",
-  });
+function getInitials(text) {
+  if (!text) return "U";
+  const clean = text.trim();
+  const parts = clean.split(" ");
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  return clean.slice(0, 2).toUpperCase();
+}
 
-  const [msg, setMsg] = useState("");
-  const [errMsg, setErrMsg] = useState("");
+export default function ProfileView({
+  profile,
+  isLoading,
+  isError,
+  error,
 
-  useEffect(() => {
-    if (profile) {
-      setNewEmail(profile.email || "");
+  email,
+  setEmail,
+  handleEmailSubmit,
+  savingEmail,
 
-      try {
-        localStorage.setItem("user", JSON.stringify(profile));
-        if (profile.fullName) {
-          localStorage.setItem("userName", profile.fullName);
-        } else if (profile.userName) {
-          localStorage.setItem("userName", profile.userName);
-        } else if (profile.email) {
-          localStorage.setItem("userName", profile.email);
-        }
-      } catch {
-        // ignore
-      }
-    }
-  }, [profile]);
+  pwdForm,
+  onPwdFieldChange,
+  handlePasswordSubmit,
+  savingPassword,
 
+  msg,
+  errMsg,
+}) {
   if (isLoading) {
     return (
-      <div style={{ padding: 24 }}>
-        <h2>Loading profile...</h2>
-      </div>
+      <Box
+        sx={{
+          minHeight: "60vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <CircularProgress />
+      </Box>
     );
   }
 
   if (isError) {
     return (
-      <div style={{ padding: 24 }}>
-        <h2 style={{ color: "red" }}>Error</h2>
-        <p>{error?.message || "Failed to load profile"}</p>
-      </div>
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error">
+          {error?.message || "فشل تحميل بيانات الحساب"}
+        </Alert>
+      </Box>
     );
   }
 
   if (!profile) {
     return (
-      <div style={{ padding: 24 }}>
-        <h2>No profile data</h2>
-      </div>
+      <Box sx={{ p: 3 }}>
+        <Alert severity="warning">لا توجد بيانات حساب</Alert>
+      </Box>
     );
   }
 
-  const fullName =
-    profile.fullName ||
-    profile.userName ||
-    profile.name ||
-    profile.email ||
-    "User";
-
-  const email = profile.email || "";
-  const phone = profile.phoneNumber || profile.phone || "";
-
-  // تغيير الإيميل
-  async function handleEmailSubmit(e) {
-    e.preventDefault();
-    setMsg("");
-    setErrMsg("");
-
-    try {
-      await changeEmailMutation.mutateAsync({ newEmail });
-      setMsg("تم تحديث البريد الإلكتروني بنجاح ");
-    } catch (err) {
-      console.error(err);
-      setErrMsg("فشل تعديل البريد الإلكتروني ");
-    }
-  }
-
-  // تغيير الباسورد
-  async function handlePasswordSubmit(e) {
-    e.preventDefault();
-    setMsg("");
-    setErrMsg("");
-
-    if (pwdForm.newPassword !== pwdForm.confirmNewPassword) {
-      setErrMsg("تأكيد كلمة المرور غير مطابق ");
-      return;
-    }
-
-    try {
-      await changePasswordMutation.mutateAsync(pwdForm);
-      setMsg("تم تغيير كلمة المرور بنجاح ");
-      setPwdForm({
-        currentPassword: "",
-        newPassword: "",
-        confirmNewPassword: "",
-      });
-    } catch (err) {
-      console.error(err);
-      setErrMsg("فشل تغيير كلمة المرور ");
-    }
-  }
+  const fullName = fullNameFromProfile(profile);
+  const phone = phoneFromProfile(profile);
 
   return (
-    <div
-      style={{
-        background: "#f5f5f5",
+    <Box
+      sx={{
+        bgcolor: "#f3f4f6",
         minHeight: "100vh",
-        padding: "40px 0",
+        py: 4,
       }}
     >
-      <div
-        style={{
-          maxWidth: 900,
-          margin: "0 auto",
-          padding: "0 16px",
-        }}
-      >
-        <h1 style={{ marginBottom: 8 }}>My Profile</h1>
-        <p style={{ marginTop: 0, marginBottom: 24, color: "#555" }}>
-          هنا يمكنك مشاهدة بيانات حسابك وتعديل البريد الإلكتروني وكلمة المرور.
-        </p>
-
-        {(msg || errMsg) && (
-          <div
-            style={{
-              marginBottom: 20,
-              padding: "10px 14px",
-              borderRadius: 10,
-              background: errMsg ? "#ffecec" : "#e8f7ef",
-              color: errMsg ? "#b32020" : "#0f6b3c",
-              fontSize: 14,
+      <Box sx={{ maxWidth: 960, mx: "auto", px: 2 }}>
+        <Paper
+          sx={{
+            p: 3,
+            mb: 3,
+            borderRadius: 3,
+            display: "flex",
+            alignItems: "center",
+            gap: 2.5,
+            border: "1px solid #e5e7eb",
+            bgcolor: "#ffffff",
+          }}
+        >
+          <Avatar
+            sx={{
+              width: 72,
+              height: 72,
+              bgcolor: "#3b5d50",
+              fontSize: 28,
+              fontWeight: 700,
             }}
           >
-            {errMsg || msg}
-          </div>
+            {getInitials(fullName)}
+          </Avatar>
+
+          <Box sx={{ flexGrow: 1 }}>
+            <Typography
+              variant="h5"
+              sx={{ fontWeight: 700, mb: 0.5, color: "#111827" }}
+            >
+              {fullName}
+            </Typography>
+
+            {profile.email && (
+              <Typography
+                variant="body2"
+                sx={{ color: "#6b7280", wordBreak: "break-all" }}
+              >
+                {profile.email}
+              </Typography>
+            )}
+
+            {phone && (
+              <Typography
+                variant="body2"
+                sx={{ color: "#6b7280", mt: 0.5 }}
+              >
+                رقم الهاتف: {phone}
+              </Typography>
+            )}
+
+            <Typography
+              variant="body2"
+              sx={{ mt: 1, color: "#9ca3af" }}
+            >
+              من هنا يمكنك تحديث البريد الإلكتروني وكلمة المرور الخاصة بحسابك.
+            </Typography>
+          </Box>
+        </Paper>
+
+        {(msg || errMsg) && (
+          <Box sx={{ mb: 3 }}>
+            <Alert severity={errMsg ? "error" : "success"}>
+              {errMsg || msg}
+            </Alert>
+          </Box>
         )}
 
-        {/* AC INFO*/}
-        <div
-          style={{
-            background: "#fff",
-            borderRadius: 16,
-            padding: 20,
-            border: "1px solid #e3e3e3",
-            marginBottom: 24,
-          }}
-        >
-          <h2 style={{ marginTop: 0, marginBottom: 16, fontSize: 20 }}>
-            Account Info
-          </h2>
-
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ display: "block", fontSize: 14, color: "#555" }}>
-              Full Name
-            </label>
-            <input
-              type="text"
-              value={fullName}
-              readOnly
-              style={{
-                width: "100%",
-                padding: "8px 10px",
-                borderRadius: 8,
-                border: "1px solid #ddd",
-                background: "#f9fafb",
-              }}
-            />
-          </div>
-
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ display: "block", fontSize: 14, color: "#555" }}>
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              readOnly
-              style={{
-                width: "100%",
-                padding: "8px 10px",
-                borderRadius: 8,
-                border: "1px solid #ddd",
-                background: "#f9fafb",
-              }}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: "block", fontSize: 14, color: "#555" }}>
-              Phone Number
-            </label>
-            <input
-              type="text"
-              value={phone}
-              readOnly
-              style={{
-                width: "100%",
-                padding: "8px 10px",
-                borderRadius: 8,
-                border: "1px solid #ddd",
-                background: "#f9fafb",
-              }}
-            />
-          </div>
-        </div>
-
-        {/* CHANGE EMAIL */}
-        <div
-          style={{
-            background: "#fff",
-            borderRadius: 16,
-            padding: 20,
-            border: "1px solid #e3e3e3",
-            marginBottom: 24,
-          }}
-        >
-          <h2 style={{ marginTop: 0, marginBottom: 16, fontSize: 20 }}>
-            Change Email
-          </h2>
-
-          <form onSubmit={handleEmailSubmit}>
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ display: "block", fontSize: 14, color: "#555" }}>
-                New Email
-              </label>
-              <input
-                type="email"
-                required
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "8px 10px",
-                  borderRadius: 8,
-                  border: "1px solid #ddd",
-                }}
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={changeEmailMutation.isPending}
-              style={{
-                marginTop: 6,
-                padding: "9px 18px",
-                borderRadius: 999,
-                border: "none",
-                background: "#111827",
-                color: "#fff",
-                fontWeight: 600,
-                cursor: "pointer",
-                opacity: changeEmailMutation.isPending ? 0.8 : 1,
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
+            <Paper
+              sx={{
+                p: 3,
+                borderRadius: 3,
+                border: "1px solid #e5e7eb",
+                bgcolor: "#ffffff",
+                height: "100%",
               }}
             >
-              {changeEmailMutation.isPending ? "Saving..." : "Update Email"}
-            </button>
-          </form>
-        </div>
+              <Typography
+                variant="h6"
+                sx={{ mb: 1.5, fontWeight: 700, color: "#111827" }}
+              >
+                تغيير البريد الإلكتروني
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{ mb: 2, color: "#6b7280" }}
+              >
+                سيتم إرسال التنبيهات والمراسلات إلى هذا البريد.
+              </Typography>
 
-        {/* CHANGE PASSWORD */}
-        <div
-          style={{
-            background: "#fff",
-            borderRadius: 16,
-            padding: 20,
-            border: "1px solid #e3e3e3",
-          }}
-        >
-          <h2 style={{ marginTop: 0, marginBottom: 16, fontSize: 20 }}>
-            Change Password
-          </h2>
+              <Box component="form" onSubmit={handleEmailSubmit}>
+                <TextField
+                  label="البريد الإلكتروني الجديد"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  fullWidth
+                  required
+                  size="small"
+                  sx={{ mb: 2 }}
+                />
 
-          <form onSubmit={handlePasswordSubmit}>
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ display: "block", fontSize: 14, color: "#555" }}>
-                Current Password
-              </label>
-              <input
-                type="password"
-                required
-                value={pwdForm.currentPassword}
-                onChange={(e) =>
-                  setPwdForm((f) => ({ ...f, currentPassword: e.target.value }))
-                }
-                style={{
-                  width: "100%",
-                  padding: "8px 10px",
-                  borderRadius: 8,
-                  border: "1px solid #ddd",
-                }}
-              />
-            </div>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disableElevation
+                  disabled={savingEmail}
+                  sx={{
+                    textTransform: "none",
+                    fontWeight: 600,
+                    borderRadius: 999,
+                    bgcolor: "#111827",
+                    "&:hover": { bgcolor: "#000" },
+                  }}
+                >
+                  {savingEmail ? "جاري الحفظ..." : "تحديث البريد"}
+                </Button>
+              </Box>
+            </Paper>
+          </Grid>
 
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ display: "block", fontSize: 14, color: "#555" }}>
-                New Password
-              </label>
-              <input
-                type="password"
-                required
-                value={pwdForm.newPassword}
-                onChange={(e) =>
-                  setPwdForm((f) => ({ ...f, newPassword: e.target.value }))
-                }
-                style={{
-                  width: "100%",
-                  padding: "8px 10px",
-                  borderRadius: 8,
-                  border: "1px solid #ddd",
-                }}
-              />
-            </div>
-
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ display: "block", fontSize: 14, color: "#555" }}>
-                Confirm New Password
-              </label>
-              <input
-                type="password"
-                required
-                value={pwdForm.confirmNewPassword}
-                onChange={(e) =>
-                  setPwdForm((f) => ({
-                    ...f,
-                    confirmNewPassword: e.target.value,
-                  }))
-                }
-                style={{
-                  width: "100%",
-                  padding: "8px 10px",
-                  borderRadius: 8,
-                  border: "1px solid #ddd",
-                }}
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={changePasswordMutation.isPending}
-              style={{
-                marginTop: 6,
-                padding: "9px 18px",
-                borderRadius: 999,
-                border: "none",
-                background: "#111827",
-                color: "#fff",
-                fontWeight: 600,
-                cursor: "pointer",
-                opacity: changePasswordMutation.isPending ? 0.8 : 1,
+          {/* تغيير كلمة المرور */}
+          <Grid item xs={12} md={6}>
+            <Paper
+              sx={{
+                p: 3,
+                borderRadius: 3,
+                border: "1px solid #e5e7eb",
+                bgcolor: "#ffffff",
+                height: "100%",
               }}
             >
-              {changePasswordMutation.isPending ? "Saving..." : "Update Password"}
-            </button>
-          </form>
-        </div>
-      </div>
-    </div>
+              <Typography
+                variant="h6"
+                sx={{ mb: 1.5, fontWeight: 700, color: "#111827" }}
+              >
+                تغيير كلمة المرور
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{ mb: 2, color: "#6b7280" }}
+              >
+                اختر كلمة مرور قوية لحماية حسابك.
+              </Typography>
+
+              <Box component="form" onSubmit={handlePasswordSubmit}>
+                <TextField
+                  label="كلمة المرور الحالية"
+                  type="password"
+                  value={pwdForm.currentPassword}
+                  onChange={(e) =>
+                    onPwdFieldChange("currentPassword", e.target.value)
+                  }
+                  fullWidth
+                  required
+                  size="small"
+                  sx={{ mb: 2 }}
+                />
+
+                <TextField
+                  label="كلمة المرور الجديدة"
+                  type="password"
+                  value={pwdForm.newPassword}
+                  onChange={(e) =>
+                    onPwdFieldChange("newPassword", e.target.value)
+                  }
+                  fullWidth
+                  required
+                  size="small"
+                  sx={{ mb: 2 }}
+                />
+
+                <TextField
+                  label="تأكيد كلمة المرور الجديدة"
+                  type="password"
+                  value={pwdForm.confirmNewPassword}
+                  onChange={(e) =>
+                    onPwdFieldChange("confirmNewPassword", e.target.value)
+                  }
+                  fullWidth
+                  required
+                  size="small"
+                  sx={{ mb: 2 }}
+                />
+
+                <Divider sx={{ my: 1.5 }} />
+
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disableElevation
+                  disabled={savingPassword}
+                  sx={{
+                    textTransform: "none",
+                    fontWeight: 600,
+                    borderRadius: 999,
+                    bgcolor: "#111827",
+                    "&:hover": { bgcolor: "#000" },
+                  }}
+                >
+                  {savingPassword ? "جاري الحفظ..." : "تحديث كلمة المرور"}
+                </Button>
+              </Box>
+            </Paper>
+          </Grid>
+        </Grid>
+      </Box>
+    </Box>
   );
 }
