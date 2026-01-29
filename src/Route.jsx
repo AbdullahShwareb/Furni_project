@@ -11,7 +11,7 @@ import Register from "./pages/register/Register.jsx";
 
 import Shop from "./pages/shop/Shop.jsx";
 import About from "./pages/about/About.jsx";
-import Services from "./pages/services/Services.jsx";
+import Services from "./pages/services/services.jsx";
 import Blog from "./pages/blog/Blog.jsx";
 import Contact from "./pages/contact/contact.jsx";
 
